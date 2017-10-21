@@ -14,6 +14,10 @@ type KubeConformity struct {
 	Logger log.StdLogger
 }
 
+type KubeConformityResult struct {
+	ResourceProblems []v1.Pod
+}
+
 func New(client kubernetes.Interface, logger log.StdLogger) *KubeConformity {
 	return &KubeConformity{
 		Client:      client,
@@ -22,34 +26,32 @@ func New(client kubernetes.Interface, logger log.StdLogger) *KubeConformity {
 }
 
 func (k *KubeConformity) LogNonConformingPods() error {
-	pods, err := k.FindNonConformingPods()
+	conformityResult, err := k.FindNonConformingPods()
 	if err != nil {
 		return err
 	}
-	for _, pod := range pods {
-		k.Logger.Print(pod)
-	}
+	k.Logger.Print(conformityResult)
 	return nil
 }
 
 // Candidates returns the list of pods that are available for termination.
 // It returns all pods matching the label selector and at least one namespace.
-func (k *KubeConformity) FindNonConformingPods() ([]v1.Pod, error) {
+func (k *KubeConformity) FindNonConformingPods() (KubeConformityResult, error) {
 
 	podList, err := k.Client.Core().Pods(v1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
-		return nil, err
+		return KubeConformityResult{}, err
 	}
 
-	pods, err := filterConformingPods(podList.Items)
+	pods, err := filterOnResources(podList.Items)
 	if err != nil {
-		return nil, err
+		return KubeConformityResult{}, err
 	}
 
-	return pods, nil
+	return KubeConformityResult{pods}, nil
 }
 
-func filterConformingPods(pods []v1.Pod) ([]v1.Pod, error) {
+func filterOnResources(pods []v1.Pod) ([]v1.Pod, error) {
 
 	filteredList := []v1.Pod{}
 	for _, pod := range pods {

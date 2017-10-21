@@ -32,7 +32,7 @@ func TestFilterConformingPods(t *testing.T) {
 		pod1,
 		pod2,
 	}
-	pods, err := filterConformingPods(pods)
+	pods, err := filterOnResources(pods)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +48,7 @@ func TestFilterConformingPodsRequestsFilledIn(t *testing.T) {
 		pod1,
 		pod2,
 	}
-	pods, err := filterConformingPods(pods)
+	pods, err := filterOnResources(pods)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func TestFilterConformingPodsLimitsFilledIn(t *testing.T) {
 		pod1,
 		pod2,
 	}
-	pods, err := filterConformingPods(pods)
+	pods, err := filterOnResources(pods)
 	if err != nil {
 		t.Fatal(err)
 	}
