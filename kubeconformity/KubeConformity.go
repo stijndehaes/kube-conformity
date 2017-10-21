@@ -56,7 +56,6 @@ func filterConformingPods(pods []v1.Pod) ([]v1.Pod, error) {
 		var podNonConform = false
 
 		for _, container := range pod.Spec.Containers {
-			log.Debug(container.Resources.Limits.Cpu().IsZero())
 			podNonConform = podNonConform || container.Resources.Limits.Cpu().IsZero()
 			podNonConform = podNonConform || container.Resources.Limits.Memory().IsZero()
 			podNonConform = podNonConform || container.Resources.Requests.Cpu().IsZero()
