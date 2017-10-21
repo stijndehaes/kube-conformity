@@ -1,0 +1,20 @@
+package: github.com/stijndehaes/kubeconformity
+import:
+- package: github.com/sirupsen/logrus
+  version: ~1.0.3
+- package: github.com/stretchr/testify
+  version: ~1.1.4
+- package: gopkg.in/alecthomas/kingpin.v2
+  version: ~2.2.5
+- package: k8s.io/apimachinery
+  subpackages:
+  - pkg/apis/meta/v1
+  - pkg/labels
+  - pkg/selection
+- package: k8s.io/client-go
+  version: ~4.0.0
+  subpackages:
+  - kubernetes
+  - pkg/api/v1
+  - plugin/pkg/client/auth
+  - tools/clientcmd
