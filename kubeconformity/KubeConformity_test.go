@@ -25,41 +25,63 @@ func TestFindNonConformingPods(t *testing.T) {
 	assert.Equal(t, 1, len(pods))
 }
 
-func TestFilterConformingPodsNothingFilledIn(t *testing.T) {
+func TestFilterConformingPods(t *testing.T) {
 	pod1 := newPod("default", "foo")
+	pod2 := newPodWithAllFilledIn("testing", "bar")
 	pods := []v1.Pod{
-		*pod1,
-		*newPodWithRequestAndLimit("testing", "bar", "400m", "1.1Gi", "400m", "1.1Gi"),
+		pod1,
+		pod2,
 	}
 	pods, err := filterConformingPods(pods)
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, 1, len(pods))
-	assert.Equal(t, pod1, pods[0])
+	assert.Equal(t, pod1.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+	assert.NotEqual(t, pod2.ObjectMeta.Name, pods[0].ObjectMeta.Name)
 }
 
 func TestFilterConformingPodsRequestsFilledIn(t *testing.T) {
 	pod1 := newPodWithRequestAndLimit("default", "foo", "", "", "400m", "1.1Gi")
-	resource := pod1.Spec.Containers[0].Resources
-	logger.Fatal(resource)
+	pod2 := newPodWithAllFilledIn("testing", "bar")
 	pods := []v1.Pod{
-		*pod1,
-		*newPodWithRequestAndLimit("testing", "bar", "400m", "1.1Gi", "400m", "1.1Gi"),
+		pod1,
+		pod2,
 	}
 	pods, err := filterConformingPods(pods)
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, 1, len(pods))
-	assert.Equal(t, pod1, pods[0])
+	assert.Equal(t, pod1.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+	assert.NotEqual(t, pod2.ObjectMeta.Name, pods[0].ObjectMeta.Name)
 }
 
-func newPod(namespace, name string) *v1.Pod {
+func TestFilterConformingPodsLimitsFilledIn(t *testing.T) {
+	pod1 := newPodWithRequestAndLimit("default", "foo", "400m", "1.1Gi", "", "")
+	pod2 := newPodWithAllFilledIn("testing", "bar")
+	pods := []v1.Pod{
+		pod1,
+		pod2,
+	}
+	pods, err := filterConformingPods(pods)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 1, len(pods))
+	assert.Equal(t, pod1.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+	assert.NotEqual(t, pod2.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+}
+
+func newPod(namespace, name string) v1.Pod {
 	return newPodWithRequestAndLimit(namespace, name, "", "", "", "")
 }
 
-func newPodWithRequestAndLimit(namespace, name, limitCpu, limitMemory, requestCpu, requestMemory string) *v1.Pod {
+func newPodWithAllFilledIn(namespace, name string) v1.Pod {
+	return newPodWithRequestAndLimit(namespace, name, "100m", "1.1Gi", "100m", "1.1Gi")
+}
+
+func newPodWithRequestAndLimit(namespace, name, limitCpu, limitMemory, requestCpu, requestMemory string) v1.Pod {
 	resources := v1.ResourceRequirements{
 		Limits:   make(v1.ResourceList),
 		Requests: make(v1.ResourceList),
@@ -76,7 +98,7 @@ func newPodWithRequestAndLimit(namespace, name, limitCpu, limitMemory, requestCp
 	if requestMemory != "" {
 		resources.Requests[v1.ResourceMemory] = resource.MustParse(requestMemory)
 	}
-	return &v1.Pod{
+	return v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
@@ -94,8 +116,8 @@ func newPodWithRequestAndLimit(namespace, name, limitCpu, limitMemory, requestCp
 
 func setup(t *testing.T) *KubeConformity {
 	pods := []v1.Pod{
-		*newPod("default", "foo"),
-		*newPodWithRequestAndLimit("testing", "bar" , "400m", "1.1Gi", "400m", "1.1Gi"),
+		newPod("default", "foo"),
+		newPodWithAllFilledIn("testing", "bar"),
 	}
 
 	client := fake.NewSimpleClientset()
