@@ -17,15 +17,16 @@ var logger = log.New(logOutput, "", 0)
 // TestCandidatesNamespaces tests that the list of pods available for
 // termination can be restricted by namespaces.
 func TestFindNonConformingPods(t *testing.T) {
-	kubeConformity := setup(t)
-	pods, err := kubeConformity.FindNonConformingPods()
+	kubeConformity := setup(t, []string{})
+	conformityResult, err := kubeConformity.FindNonConformingPods()
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, 1, len(pods))
+	assert.Equal(t, 1, len(conformityResult.ResourceProblems))
+	assert.Equal(t, 0, len(conformityResult.LabelProblems))
 }
 
-func TestFilterConformingPods(t *testing.T) {
+func TestFilterOnResources(t *testing.T) {
 	pod1 := newPod("default", "foo")
 	pod2 := newPodWithAllFilledIn("testing", "bar")
 	pods := []v1.Pod{
@@ -41,7 +42,7 @@ func TestFilterConformingPods(t *testing.T) {
 	assert.NotEqual(t, pod2.ObjectMeta.Name, pods[0].ObjectMeta.Name)
 }
 
-func TestFilterConformingPodsRequestsFilledIn(t *testing.T) {
+func TestFilterOnResourcesRequestsFilledIn(t *testing.T) {
 	pod1 := newPodWithRequestAndLimit("default", "foo", "", "", "400m", "1.1Gi")
 	pod2 := newPodWithAllFilledIn("testing", "bar")
 	pods := []v1.Pod{
@@ -57,7 +58,7 @@ func TestFilterConformingPodsRequestsFilledIn(t *testing.T) {
 	assert.NotEqual(t, pod2.ObjectMeta.Name, pods[0].ObjectMeta.Name)
 }
 
-func TestFilterConformingPodsLimitsFilledIn(t *testing.T) {
+func TestFilterOnResourcesLimitsFilledIn(t *testing.T) {
 	pod1 := newPodWithRequestAndLimit("default", "foo", "400m", "1.1Gi", "", "")
 	pod2 := newPodWithAllFilledIn("testing", "bar")
 	pods := []v1.Pod{
@@ -71,6 +72,88 @@ func TestFilterConformingPodsLimitsFilledIn(t *testing.T) {
 	assert.Equal(t, 1, len(pods))
 	assert.Equal(t, pod1.ObjectMeta.Name, pods[0].ObjectMeta.Name)
 	assert.NotEqual(t, pod2.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+}
+
+func TestFilterOnLabels(t *testing.T) {
+	pod1 := newPodWithLabel("testing", "bar1", "test")
+	pod2 := newPodWithLabel("testing", "bar2", "app")
+	pods := []v1.Pod{
+		pod1,
+		pod2,
+	}
+	pods, err := filterOnLabels(pods, []string{"app"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 1, len(pods))
+	assert.Equal(t, pod1.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+	assert.NotEqual(t, pod2.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+}
+
+func TestFilterOnLabelsMultipleLables(t *testing.T) {
+	pod1 := newPod("testing", "bar1")
+	pod2 := newPodWithLabels("testing", "bar2", []string{"app","environment"})
+	pods := []v1.Pod{
+		pod1,
+		pod2,
+	}
+	pods, err := filterOnLabels(pods, []string{"app","environment"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 1, len(pods))
+	assert.Equal(t, pod1.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+	assert.NotEqual(t, pod2.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+}
+
+func TestFilterOnLabelsAllLabelsMatch(t *testing.T) {
+	pod1 := newPod("testing", "bar1")
+	pod2 := newPodWithLabels("testing", "bar2", []string{"app","environment"})
+	pods := []v1.Pod{
+		pod1,
+		pod2,
+	}
+	pods, err := filterOnLabels(pods, []string{"app","environment"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 1, len(pods))
+	assert.Equal(t, pod1.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+	assert.NotEqual(t, pod2.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+}
+
+func TestFilterOnLabelsOnlyOneLabelMatch(t *testing.T) {
+	pod1 := newPodWithLabels("testing", "bar1", []string{"app","other"})
+	pod2 := newPodWithLabels("testing", "bar2", []string{"app","environment"})
+	pods := []v1.Pod{
+		pod1,
+		pod2,
+	}
+	pods, err := filterOnLabels(pods, []string{"app","environment"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 1, len(pods))
+	assert.Equal(t, pod1.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+	assert.NotEqual(t, pod2.ObjectMeta.Name, pods[0].ObjectMeta.Name)
+}
+
+func newPodWithLabel(namespace, name, label string) v1.Pod {
+	return newPodWithLabels(namespace, name, []string{label})
+}
+
+func newPodWithLabels(namespace, name string, labels []string) v1.Pod {
+	labelMap := make(map[string]string)
+	for _, label := range labels {
+		labelMap[label] = "randomString"
+	}
+	return v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      name,
+			Labels: labelMap,
+		},
+	}
 }
 
 func newPod(namespace, name string) v1.Pod {
@@ -114,7 +197,7 @@ func newPodWithRequestAndLimit(namespace, name, limitCpu, limitMemory, requestCp
 	}
 }
 
-func setup(t *testing.T) *KubeConformity {
+func setup(t *testing.T, labels []string) *KubeConformity {
 	pods := []v1.Pod{
 		newPod("default", "foo"),
 		newPodWithAllFilledIn("testing", "bar"),
@@ -130,5 +213,5 @@ func setup(t *testing.T) *KubeConformity {
 
 	logOutput.Reset()
 
-	return New(client, logger)
+	return New(client, logger, labels)
 }

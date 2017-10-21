@@ -20,6 +20,7 @@ var (
 	interval    time.Duration
 	debug       bool
 	version     string
+	labels		[]string
 )
 
 func init() {
@@ -27,6 +28,7 @@ func init() {
 	kingpin.Flag("kubeconfig", "Path to a kubeconfig file").StringVar(&kubeconfig)
 	kingpin.Flag("interval", "Interval between conformity checks").Default("1h").DurationVar(&interval)
 	kingpin.Flag("debug", "Enable debug logging.").BoolVar(&debug)
+	kingpin.Flag("labels", "A list of labels that should be set on every pod in the cluster").StringsVar(&labels)
 }
 
 func main() {
@@ -45,6 +47,7 @@ func main() {
 	kubeConformity := kubeconformity.New(
 		client,
 		log.StandardLogger(),
+		labels,
 	)
 
 	for {
