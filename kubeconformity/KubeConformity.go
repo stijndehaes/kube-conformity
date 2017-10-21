@@ -35,8 +35,14 @@ func (k *KubeConformity) LogNonConformingPods() error {
 		return err
 	}
 
+	if len(conformityResult.ResourceProblems) != 0{
+		k.Logger.Print("Found pods without resources set")
+	}
 	for _, pod := range conformityResult.ResourceProblems {
 		k.Logger.Print(fmt.Sprintf("%s_%s(%s)", pod.Name, pod.Namespace, pod.UID))
+	}
+	if len(conformityResult.LabelProblems) != 0{
+		k.Logger.Print("Found pods with label problems")
 	}
 	for _, pod := range conformityResult.LabelProblems {
 		k.Logger.Print(fmt.Sprintf("%s_%s(%s)", pod.Name, pod.Namespace, pod.UID))

@@ -17,7 +17,11 @@ var logger = log.New(logOutput, "", 0)
 // TestCandidatesNamespaces tests that the list of pods available for
 // termination can be restricted by namespaces.
 func TestFindNonConformingPods(t *testing.T) {
-	kubeConformity := setup(t, []string{})
+	pods := []v1.Pod{
+		newPod("default", "foo"),
+		newPodWithAllFilledIn("testing", "bar", []string{}),
+	}
+	kubeConformity := setup(t, []string{}, pods)
 	conformityResult, err := kubeConformity.FindNonConformingPods()
 	if err != nil {
 		t.Fatal(err)
@@ -26,9 +30,31 @@ func TestFindNonConformingPods(t *testing.T) {
 	assert.Equal(t, 0, len(conformityResult.LabelProblems))
 }
 
+func TestLogNonConformingPodsResources(t *testing.T) {
+	pods := []v1.Pod{
+		newPodWithAllFilledIn("default", "foo1", []string{}),
+		newPod("default", "foo2"),
+	}
+	kubeConformity := setup(t, []string{}, pods)
+	kubeConformity.LogNonConformingPods()
+	logOutput.String()
+	assert.Equal(t, "Found pods without resources set\nfoo2_default()\n", logOutput.String())
+}
+
+func TestLogNonConformingPodsLabels(t *testing.T) {
+	pods := []v1.Pod{
+		newPodWithAllFilledIn("default", "foo1", []string{"app"}),
+		newPodWithAllFilledIn("default", "foo2", []string{"test"}),
+	}
+	kubeConformity := setup(t, []string{"app"}, pods)
+	kubeConformity.LogNonConformingPods()
+	logOutput.String()
+	assert.Equal(t, "Found pods with label problems\nfoo2_default()\n", logOutput.String())
+}
+
 func TestFilterOnResources(t *testing.T) {
 	pod1 := newPod("default", "foo")
-	pod2 := newPodWithAllFilledIn("testing", "bar")
+	pod2 := newPodWithAllFilledIn("testing", "bar", []string{})
 	pods := []v1.Pod{
 		pod1,
 		pod2,
@@ -43,8 +69,8 @@ func TestFilterOnResources(t *testing.T) {
 }
 
 func TestFilterOnResourcesRequestsFilledIn(t *testing.T) {
-	pod1 := newPodWithRequestAndLimit("default", "foo", "", "", "400m", "1.1Gi")
-	pod2 := newPodWithAllFilledIn("testing", "bar")
+	pod1 := newPodWithRequestAndLimit("default", "foo", "", "", "400m", "1.1Gi", []string{})
+	pod2 := newPodWithAllFilledIn("testing", "bar", []string{})
 	pods := []v1.Pod{
 		pod1,
 		pod2,
@@ -59,8 +85,8 @@ func TestFilterOnResourcesRequestsFilledIn(t *testing.T) {
 }
 
 func TestFilterOnResourcesLimitsFilledIn(t *testing.T) {
-	pod1 := newPodWithRequestAndLimit("default", "foo", "400m", "1.1Gi", "", "")
-	pod2 := newPodWithAllFilledIn("testing", "bar")
+	pod1 := newPodWithRequestAndLimit("default", "foo", "400m", "1.1Gi", "", "", []string{})
+	pod2 := newPodWithAllFilledIn("testing", "bar", []string{})
 	pods := []v1.Pod{
 		pod1,
 		pod2,
@@ -157,14 +183,18 @@ func newPodWithLabels(namespace, name string, labels []string) v1.Pod {
 }
 
 func newPod(namespace, name string) v1.Pod {
-	return newPodWithRequestAndLimit(namespace, name, "", "", "", "")
+	return newPodWithRequestAndLimit(namespace, name, "", "", "", "", []string{})
 }
 
-func newPodWithAllFilledIn(namespace, name string) v1.Pod {
-	return newPodWithRequestAndLimit(namespace, name, "100m", "1.1Gi", "100m", "1.1Gi")
+func newPodWithAllFilledIn(namespace, name string, labels []string) v1.Pod {
+	return newPodWithRequestAndLimit(namespace, name, "100m", "1.1Gi", "100m", "1.1Gi", labels)
 }
 
-func newPodWithRequestAndLimit(namespace, name, limitCpu, limitMemory, requestCpu, requestMemory string) v1.Pod {
+func newPodWithRequestAndLimit(namespace, name, limitCpu, limitMemory, requestCpu, requestMemory string, labels []string) v1.Pod {
+	labelMap := make(map[string]string)
+	for _, label := range labels {
+		labelMap[label] = "randomString"
+	}
 	resources := v1.ResourceRequirements{
 		Limits:   make(v1.ResourceList),
 		Requests: make(v1.ResourceList),
@@ -183,8 +213,9 @@ func newPodWithRequestAndLimit(namespace, name, limitCpu, limitMemory, requestCp
 	}
 	return v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
+			Namespace: 	namespace,
+			Name:      	name,
+			Labels: 	labelMap,
 		},
 		Spec: v1.PodSpec{
 			Containers: []v1.Container{
@@ -197,12 +228,7 @@ func newPodWithRequestAndLimit(namespace, name, limitCpu, limitMemory, requestCp
 	}
 }
 
-func setup(t *testing.T, labels []string) *KubeConformity {
-	pods := []v1.Pod{
-		newPod("default", "foo"),
-		newPodWithAllFilledIn("testing", "bar"),
-	}
-
+func setup(t *testing.T, labels []string, pods []v1.Pod) *KubeConformity {
 	client := fake.NewSimpleClientset()
 
 	for _, pod := range pods {
