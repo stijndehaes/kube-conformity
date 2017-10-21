@@ -20,12 +20,6 @@ type KubeConformityResult struct {
 	LabelProblems 		[]v1.Pod
 }
 
-
-type PrintableKubeConformityResult struct {
-	ResourceProblems 	[]string
-	LabelProblems 		[]string
-}
-
 func New(client kubernetes.Interface, logger log.StdLogger, labels []string) *KubeConformity {
 	return &KubeConformity{
 		Client: client,
@@ -40,16 +34,13 @@ func (k *KubeConformity) LogNonConformingPods() error {
 	if err != nil {
 		return err
 	}
-	resourceProblemString := []string{}
-	for _, pod := range conformityResult.ResourceProblems {
-		resourceProblemString = append(resourceProblemString, fmt.Sprintf("%s_%s(%s)", pod.Name, pod.Namespace, pod.UID))
-	}
-	labelProblemsString := []string{}
-	for _, pod := range conformityResult.LabelProblems {
-		labelProblemsString = append(labelProblemsString, fmt.Sprintf("%s_%s(%s)", pod.Name, pod.Namespace, pod.UID))
-	}
 
-	k.Logger.Print(PrintableKubeConformityResult{resourceProblemString, labelProblemsString})
+	for _, pod := range conformityResult.ResourceProblems {
+		k.Logger.Print(fmt.Sprintf("%s_%s(%s)", pod.Name, pod.Namespace, pod.UID))
+	}
+	for _, pod := range conformityResult.LabelProblems {
+		k.Logger.Print(fmt.Sprintf("%s_%s(%s)", pod.Name, pod.Namespace, pod.UID))
+	}
 	return nil
 }
 
