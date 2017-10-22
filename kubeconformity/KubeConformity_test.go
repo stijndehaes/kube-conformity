@@ -53,5 +53,5 @@ func setup(t *testing.T, labels []string, pods []v1.Pod) *KubeConformity {
 
 	logOutput.Reset()
 
-	return New(client, logger, labels, rules)
+	return New(client, logger, rules)
 }
