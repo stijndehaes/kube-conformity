@@ -21,6 +21,8 @@ var (
 	debug       bool
 	version     string
 	labels		[]string
+	requests 	bool
+	limits		bool
 )
 
 func init() {
@@ -29,6 +31,8 @@ func init() {
 	kingpin.Flag("interval", "Interval between conformity checks").Default("1h").DurationVar(&interval)
 	kingpin.Flag("debug", "Enable debug logging.").BoolVar(&debug)
 	kingpin.Flag("labels", "A list of labels that should be set on every pod in the cluster").StringsVar(&labels)
+	kingpin.Flag("requestCheck", "Check if all pods have request filled in").BoolVar(&requests)
+	kingpin.Flag("limitsCheck", "Check if all pods have limits filled in").BoolVar(&limits)
 }
 
 func main() {
@@ -44,10 +48,29 @@ func main() {
 		log.Fatal(err)
 	}
 
+	rules := []kubeconformity.Rule{}
+
+	if len(labels) != 0 {
+		labelsRule := kubeconformity.LabelsFilledInRule{
+			Labels: labels,
+		}
+		rules = append(rules, labelsRule)
+	}
+
+	if requests {
+		requestRule := kubeconformity.RequestsFilledInRule{}
+		rules = append(rules, requestRule)
+	}
+
+	if limits {
+		limitsRule := kubeconformity.LimitsFilledInRule{}
+		rules = append(rules, limitsRule)
+	}
+
 	kubeConformity := kubeconformity.New(
 		client,
 		log.StandardLogger(),
-		labels,
+		rules,
 	)
 
 	for {
