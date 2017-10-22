@@ -30,9 +30,9 @@ func init() {
 	kingpin.Flag("kubeconfig", "Path to a kubeconfig file").StringVar(&kubeconfig)
 	kingpin.Flag("interval", "Interval between conformity checks").Default("1h").DurationVar(&interval)
 	kingpin.Flag("debug", "Enable debug logging.").BoolVar(&debug)
-	kingpin.Flag("labels", "A list of labels that should be set on every pod in the cluster").StringsVar(&labels)
-	kingpin.Flag("requestCheck", "Check if all pods have request filled in").BoolVar(&requests)
-	kingpin.Flag("limitsCheck", "Check if all pods have limits filled in").BoolVar(&limits)
+	kingpin.Flag("labels", "A list of labels that should be set on every pod in the cluster").Default().StringsVar(&labels)
+	kingpin.Flag("request-check", "Check if all pods have request filled in").Default("true").BoolVar(&requests)
+	kingpin.Flag("limits-check", "Check if all pods have limits filled in").Default("true").BoolVar(&limits)
 }
 
 func main() {

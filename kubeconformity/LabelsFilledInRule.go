@@ -4,6 +4,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
+	"fmt"
 )
 
 type LabelsFilledInRule struct {
@@ -18,7 +19,7 @@ func (r LabelsFilledInRule) findNonConformingPods(client kubernetes.Interface) (
 	filteredPods := filterOnLabelsFilledIn(podList.Items, r.Labels)
 	return RuleResult{
 		Pods:   filteredPods,
-		Reason: "Labels are not filled in",
+		Reason: fmt.Sprintf("Labels: %v are not filled in", r.Labels),
 	}, nil
 }
 
