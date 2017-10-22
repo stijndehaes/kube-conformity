@@ -9,16 +9,17 @@ import (
 )
 
 func TestFilterOnLimits(t *testing.T) {
+	rule := LimitsFilledInRule{}
 	pod1 := newPodWithLimits("default", "foo", "", "")
 	pod2 := newPodWithLimits("testing", "bar", "400m", "1.1Gi")
 	pods := []v1.Pod{
 		pod1,
 		pod2,
 	}
-	filteredPods := filterOnLimitsFilledIn(pods)
-	assert.Equal(t, 1, len(filteredPods))
-	assert.Equal(t, pod1.ObjectMeta.Name, filteredPods[0].ObjectMeta.Name)
-	assert.NotEqual(t, pod2.ObjectMeta.Name, filteredPods[0].ObjectMeta.Name)
+	result := rule.findNonConformingPods(pods)
+	assert.Equal(t, 1, len(result.Pods))
+	assert.Equal(t, pod1.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
+	assert.NotEqual(t, pod2.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 }
 
 func newPodWithLimits(namespace, name, limitCpu, limitMemory string) v1.Pod {

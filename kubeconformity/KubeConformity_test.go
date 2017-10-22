@@ -35,7 +35,7 @@ func TestLogNonConformingPodsResources(t *testing.T) {
 	kubeConformity := setup(t, []string{}, pods)
 	kubeConformity.LogNonConformingPods()
 	logOutput.String()
-	assert.Equal(t, "Labels are not filled in\nfoo_default()\n", logOutput.String())
+	assert.Equal(t, "Labels: [app] are not filled in\nfoo_default()\n", logOutput.String())
 }
 
 func setup(t *testing.T, labels []string, pods []v1.Pod) *KubeConformity {

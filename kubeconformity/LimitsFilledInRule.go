@@ -1,28 +1,13 @@
 package kubeconformity
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 )
 
 type LimitsFilledInRule struct {
 }
 
-func (r LimitsFilledInRule) findNonConformingPods(client kubernetes.Interface) (RuleResult, error) {
-	podList, err := client.CoreV1().Pods(v1.NamespaceAll).List(metav1.ListOptions{})
-	if err != nil {
-		return RuleResult{}, err
-	}
-	filteredPods := filterOnLimitsFilledIn(podList.Items)
-	return RuleResult{
-		Pods:   filteredPods,
-		Reason: "Limits are not filled in",
-	}, nil
-}
-
-func filterOnLimitsFilledIn(pods []v1.Pod) ([]v1.Pod) {
-
+func (r LimitsFilledInRule) findNonConformingPods(pods []v1.Pod) RuleResult {
 	filteredList := []v1.Pod{}
 	for _, pod := range pods {
 		var podNonConform = false
@@ -37,5 +22,8 @@ func filterOnLimitsFilledIn(pods []v1.Pod) ([]v1.Pod) {
 		}
 	}
 
-	return filteredList
+	return RuleResult{
+		Pods:   filteredList,
+		Reason: "Limits are not filled in",
+	}
 }

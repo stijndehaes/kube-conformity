@@ -9,16 +9,17 @@ import (
 )
 
 func TestFilterOnRequestsFilledIn(t *testing.T) {
+	rule := RequestsFilledInRule{}
 	pod1 := newPodWithRequests("default", "foo", "", "")
 	pod2 := newPodWithRequests("testing", "bar", "400m", "1.1Gi")
 	pods := []v1.Pod{
 		pod1,
 		pod2,
 	}
-	filteredPods := filterOnRequestsFilledIn(pods)
-	assert.Equal(t, 1, len(filteredPods))
-	assert.Equal(t, pod1.ObjectMeta.Name, filteredPods[0].ObjectMeta.Name)
-	assert.NotEqual(t, pod2.ObjectMeta.Name, filteredPods[0].ObjectMeta.Name)
+	result := rule.findNonConformingPods(pods)
+	assert.Equal(t, 1, len(result.Pods))
+	assert.Equal(t, pod1.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
+	assert.NotEqual(t, pod2.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 }
 
 func newPodWithRequests(namespace, name, requestCpu, requestMemory string) v1.Pod {
