@@ -48,6 +48,24 @@ func main() {
 		log.Fatal(err)
 	}
 
+	kubeConformity := kubeconformity.New(
+		client,
+		log.StandardLogger(),
+		ConstructRules(),
+	)
+
+	for {
+		err := kubeConformity.LogNonConformingPods()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Debugf("Sleeping for %s...", interval)
+		time.Sleep(interval)
+	}
+}
+
+func ConstructRules() []kubeconformity.Rule {
 	rules := []kubeconformity.Rule{}
 
 	if len(labels) != 0 {
@@ -67,21 +85,7 @@ func main() {
 		rules = append(rules, limitsRule)
 	}
 
-	kubeConformity := kubeconformity.New(
-		client,
-		log.StandardLogger(),
-		rules,
-	)
-
-	for {
-		err := kubeConformity.LogNonConformingPods()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		log.Debugf("Sleeping for %s...", interval)
-		time.Sleep(interval)
-	}
+	return rules
 }
 
 func newClient() (*kubernetes.Clientset, error) {
