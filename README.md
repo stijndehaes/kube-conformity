@@ -10,26 +10,5 @@ At this moment there are three rules defined:
 * Resource requests filled in: Checks all pods if they have resource requests filled in
 * Limits requests filled in: Checks all pods if they have limits requests filled in
 
-To run this project you can use the provided docker image. And example deployment is the following:
-
-```bash
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: kube-conformity
-spec:
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: kube-conformity
-    spec:
-      containers:
-      - name: kube-conformity
-        image: sdehaes/kube-conformity:latest
-        args:
-        - --interval=4h
-        - --request-check
-        - --limits-check
-        - --labels="app"
-```
+To run this project you can use the provided docker image. An example deployment can be found in the examples folder.
+If you have an RBAC enabled cluster the minimum clusterrole is defined in the examples folder.
