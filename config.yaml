@@ -1,4 +1,4 @@
-labelsFilledInRule:
+labelsFilledInRules:
 - name: Check if label app is active on every pod
   labels:
   - app

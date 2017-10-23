@@ -23,7 +23,8 @@ func (r RequestsFilledInRule) findNonConformingPods(pods []v1.Pod) RuleResult {
 		}
 	}
 	return RuleResult{
-		Pods:   filteredList,
-		Reason: "Requests are not filled in",
+		Pods:     filteredList,
+		Reason:   "Requests are not filled in",
+		RuleName: r.Name,
 	}
 }

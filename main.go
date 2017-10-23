@@ -30,7 +30,7 @@ func init() {
 	kingpin.Flag("kubeconfig", "Path to a kubeconfig file").StringVar(&kubeconfig)
 	kingpin.Flag("interval", "Interval between conformity checks").Default("1h").DurationVar(&interval)
 	kingpin.Flag("debug", "Enable debug logging.").BoolVar(&debug)
-	kingpin.Flag("config-location", "The location of the config.yaml").Default("config.yaml").StringsVar(&configLocation)
+	kingpin.Flag("config-location", "The location of the config.yaml").Default("config.yaml").StringVar(&configLocation)
 }
 
 func main() {

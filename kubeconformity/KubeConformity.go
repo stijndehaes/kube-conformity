@@ -10,8 +10,9 @@ import (
 )
 
 type RuleResult struct {
-	Pods   []v1.Pod
-	Reason string
+	Pods     []v1.Pod
+	Reason   string
+	RuleName string
 }
 
 type KubeConformity struct {
@@ -35,7 +36,8 @@ func (k *KubeConformity) LogNonConformingPods() error {
 	}
 
 	for _, ruleResult := range conformityResults {
-		k.Logger.Print(ruleResult.Reason)
+		k.Logger.Printf("rule name: %s", ruleResult.RuleName)
+		k.Logger.Printf("rule reason: %s", ruleResult.Reason)
 		for _, pod := range ruleResult.Pods {
 			k.Logger.Print(fmt.Sprintf("%s_%s(%s)", pod.Name, pod.Namespace, pod.UID))
 		}

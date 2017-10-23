@@ -13,7 +13,11 @@ type LabelsFilledInRule struct {
 func (r LabelsFilledInRule) findNonConformingPods(pods []v1.Pod) RuleResult {
 	filteredList := []v1.Pod{}
 	if len(r.Labels) == 0 {
-		return RuleResult{filteredList, fmt.Sprintf("Labels: %v are not filled in", r.Labels)}
+		return RuleResult{
+			Pods:     filteredList,
+			Reason:   fmt.Sprintf("Labels: %v are not filled in", r.Labels),
+			RuleName: r.Name,
+		}
 	}
 	for _, pod := range pods {
 		for _, label := range r.Labels {
@@ -30,5 +34,9 @@ func (r LabelsFilledInRule) findNonConformingPods(pods []v1.Pod) RuleResult {
 		}
 	}
 
-	return RuleResult{filteredList, fmt.Sprintf("Labels: %v are not filled in", r.Labels)}
+	return RuleResult{
+		Pods:     filteredList,
+		Reason:   fmt.Sprintf("Labels: %v are not filled in", r.Labels),
+		RuleName: r.Name,
+	}
 }

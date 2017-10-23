@@ -24,7 +24,8 @@ func (r LimitsFilledInRule) findNonConformingPods(pods []v1.Pod) RuleResult {
 	}
 
 	return RuleResult{
-		Pods:   filteredList,
-		Reason: "Limits are not filled in",
+		Pods:     filteredList,
+		Reason:   "Limits are not filled in",
+		RuleName: r.Name,
 	}
 }
