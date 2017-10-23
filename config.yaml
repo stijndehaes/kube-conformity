@@ -1,0 +1,8 @@
+labelsFilledInRule:
+- name: Check if label app is active on every pod
+  labels:
+  - app
+limitsFilledInRules:
+- name: Checks if limits are filled in everywhere
+requestsFilledInRules:
+- name: Checks if requests are filled in everywhere

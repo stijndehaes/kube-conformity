@@ -9,26 +9,22 @@ import (
 	"fmt"
 )
 
-type Rule interface {
-	findNonConformingPods(pods []v1.Pod) RuleResult
-}
-
 type RuleResult struct {
 	Pods   []v1.Pod
 	Reason string
 }
 
 type KubeConformity struct {
-	Client kubernetes.Interface
-	Logger log.StdLogger
-	Rules  []Rule
+	Client               kubernetes.Interface
+	Logger               log.StdLogger
+	KubeConformityConfig KubeConformityConfig
 }
 
-func New(client kubernetes.Interface, logger log.StdLogger, rules []Rule) *KubeConformity {
+func New(client kubernetes.Interface, logger log.StdLogger, config KubeConformityConfig) *KubeConformity {
 	return &KubeConformity{
-		Client: client,
-		Logger: logger,
-		Rules: rules,
+		Client:               client,
+		Logger:               logger,
+		KubeConformityConfig: config,
 	}
 }
 
@@ -57,7 +53,15 @@ func (k *KubeConformity) EvaluateRules() ([]RuleResult, error) {
 	}
 
 	ruleResults := []RuleResult{}
-	for _, rule := range k.Rules {
+	for _, rule := range k.KubeConformityConfig.RequestsFilledInRules {
+		result := rule.findNonConformingPods(podList.Items)
+		ruleResults = append(ruleResults, result)
+	}
+	for _, rule := range k.KubeConformityConfig.LimitsFilledInRules {
+		result := rule.findNonConformingPods(podList.Items)
+		ruleResults = append(ruleResults, result)
+	}
+	for _, rule := range k.KubeConformityConfig.LabelsFilledInRules {
 		result := rule.findNonConformingPods(podList.Items)
 		ruleResults = append(ruleResults, result)
 	}

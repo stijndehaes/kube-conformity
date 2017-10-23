@@ -47,11 +47,13 @@ func setup(t *testing.T, labels []string, pods []v1.Pod) *KubeConformity {
 		}
 	}
 
-	rules := []Rule{
-		LabelsFilledInRule{Labels: []string{"app"}},
+	config := KubeConformityConfig{
+		LabelsFilledInRules: []LabelsFilledInRule{
+			LabelsFilledInRule{Labels: []string{"app"}},
+		},
 	}
 
 	logOutput.Reset()
 
-	return New(client, logger, rules)
+	return New(client, logger, config)
 }

@@ -5,6 +5,7 @@ import (
 )
 
 type LimitsFilledInRule struct {
+	Name string `yaml:"name"`
 }
 
 func (r LimitsFilledInRule) findNonConformingPods(pods []v1.Pod) RuleResult {

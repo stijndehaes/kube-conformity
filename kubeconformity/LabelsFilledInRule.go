@@ -6,7 +6,8 @@ import (
 )
 
 type LabelsFilledInRule struct {
-	Labels []string
+	Name   string   `yaml:"name"`
+	Labels []string `yaml:"labels"`
 }
 
 func (r LabelsFilledInRule) findNonConformingPods(pods []v1.Pod) RuleResult {

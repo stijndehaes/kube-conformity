@@ -8,7 +8,7 @@ import (
 )
 
 func TestFilterOnLabelsFilledIn(t *testing.T) {
-	rule := LabelsFilledInRule{[]string{"app"}}
+	rule := LabelsFilledInRule{"app label", []string{"app"}}
 	pod1 := newPodWithLabel("testing", "bar1", "test")
 	pod2 := newPodWithLabel("testing", "bar2", "app")
 	pods := []v1.Pod{
@@ -22,7 +22,7 @@ func TestFilterOnLabelsFilledIn(t *testing.T) {
 }
 
 func TestFilterOnLabelsFilledInMultipleLables(t *testing.T) {
-	rule := LabelsFilledInRule{[]string{"app"}}
+	rule := LabelsFilledInRule{"app label",[]string{"app"}}
 	pod1 := newPodWithLabels("testing", "bar1", []string{})
 	pod2 := newPodWithLabels("testing", "bar2", []string{"app","environment"})
 	pods := []v1.Pod{
@@ -36,7 +36,7 @@ func TestFilterOnLabelsFilledInMultipleLables(t *testing.T) {
 }
 
 func TestFilterOnLabelsFilledInAllLabelsMatch(t *testing.T) {
-	rule := LabelsFilledInRule{[]string{"app","environment"}}
+	rule := LabelsFilledInRule{"app label", []string{"app","environment"}}
 	pod1 := newPodWithLabels("testing", "bar1", []string{})
 	pod2 := newPodWithLabels("testing", "bar2", []string{"app","environment"})
 	pods := []v1.Pod{
@@ -50,7 +50,7 @@ func TestFilterOnLabelsFilledInAllLabelsMatch(t *testing.T) {
 }
 
 func TestFilterOnLabelsFilledInOnlyOneLabelMatch(t *testing.T) {
-	rule := LabelsFilledInRule{[]string{"app","environment"}}
+	rule := LabelsFilledInRule{"app label", []string{"app","environment"}}
 	pod1 := newPodWithLabels("testing", "bar1", []string{"app","other"})
 	pod2 := newPodWithLabels("testing", "bar2", []string{"app","environment"})
 	pods := []v1.Pod{

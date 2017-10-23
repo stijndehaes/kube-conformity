@@ -12,17 +12,17 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/stijndehaes/kube-conformity/kubeconformity"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 )
 
 var (
-	master      string
-	kubeconfig  string
-	interval    time.Duration
-	debug       bool
-	version     string
-	labels		[]string
-	requests 	bool
-	limits		bool
+	master         string
+	kubeconfig     string
+	interval       time.Duration
+	debug          bool
+	version        string
+	configLocation string
 )
 
 func init() {
@@ -30,9 +30,7 @@ func init() {
 	kingpin.Flag("kubeconfig", "Path to a kubeconfig file").StringVar(&kubeconfig)
 	kingpin.Flag("interval", "Interval between conformity checks").Default("1h").DurationVar(&interval)
 	kingpin.Flag("debug", "Enable debug logging.").BoolVar(&debug)
-	kingpin.Flag("labels", "A list of labels that should be set on every pod in the cluster").Default().StringsVar(&labels)
-	kingpin.Flag("request-check", "Check if all pods have request filled in").Default("true").BoolVar(&requests)
-	kingpin.Flag("limits-check", "Check if all pods have limits filled in").Default("true").BoolVar(&limits)
+	kingpin.Flag("config-location", "The location of the config.yaml").Default("config.yaml").StringsVar(&configLocation)
 }
 
 func main() {
@@ -51,7 +49,7 @@ func main() {
 	kubeConformity := kubeconformity.New(
 		client,
 		log.StandardLogger(),
-		ConstructRules(),
+		ConstructConfig(),
 	)
 
 	for {
@@ -65,27 +63,18 @@ func main() {
 	}
 }
 
-func ConstructRules() []kubeconformity.Rule {
-	rules := []kubeconformity.Rule{}
+func ConstructConfig() kubeconformity.KubeConformityConfig {
+	config := kubeconformity.KubeConformityConfig{}
 
-	if len(labels) != 0 {
-		labelsRule := kubeconformity.LabelsFilledInRule{
-			Labels: labels,
-		}
-		rules = append(rules, labelsRule)
+	yamlFile, err := ioutil.ReadFile(configLocation)
+	if err != nil {
+		log.Printf("yamlFile.Get err   #%v ", err)
 	}
-
-	if requests {
-		requestRule := kubeconformity.RequestsFilledInRule{}
-		rules = append(rules, requestRule)
+	err = yaml.Unmarshal(yamlFile, &config)
+	if err != nil {
+		log.Fatalf("Unmarshal: %v", err)
 	}
-
-	if limits {
-		limitsRule := kubeconformity.LimitsFilledInRule{}
-		rules = append(rules, limitsRule)
-	}
-
-	return rules
+	return config
 }
 
 func newClient() (*kubernetes.Clientset, error) {

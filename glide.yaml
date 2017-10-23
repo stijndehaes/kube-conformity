@@ -18,3 +18,4 @@ import:
   - pkg/api/v1
   - plugin/pkg/client/auth
   - tools/clientcmd
+- package: gopkg.in/yaml.v2

@@ -5,6 +5,7 @@ import (
 )
 
 type RequestsFilledInRule struct {
+	Name string `yaml:"name"`
 }
 
 func (r RequestsFilledInRule) findNonConformingPods(pods []v1.Pod) RuleResult {
