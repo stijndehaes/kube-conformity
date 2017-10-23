@@ -69,7 +69,7 @@ func ConstructConfig() config.KubeConformityConfig {
 
 	yamlFile, err := ioutil.ReadFile(configLocation)
 	if err != nil {
-		log.Printf("yamlFile.Get err   #%v ", err)
+		log.Fatalf("yamlFile.Get err   #%v ", err)
 	}
 	err = yaml.Unmarshal(yamlFile, &kubeConfig)
 	if err != nil {
