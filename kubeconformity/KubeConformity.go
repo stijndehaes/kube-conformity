@@ -7,21 +7,17 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 	"fmt"
+	"github.com/stijndehaes/kube-conformity/config"
+	"github.com/stijndehaes/kube-conformity/rules"
 )
-
-type RuleResult struct {
-	Pods     []v1.Pod
-	Reason   string
-	RuleName string
-}
 
 type KubeConformity struct {
 	Client               kubernetes.Interface
 	Logger               log.StdLogger
-	KubeConformityConfig KubeConformityConfig
+	KubeConformityConfig config.KubeConformityConfig
 }
 
-func New(client kubernetes.Interface, logger log.StdLogger, config KubeConformityConfig) *KubeConformity {
+func New(client kubernetes.Interface, logger log.StdLogger, config config.KubeConformityConfig) *KubeConformity {
 	return &KubeConformity{
 		Client:               client,
 		Logger:               logger,
@@ -47,24 +43,24 @@ func (k *KubeConformity) LogNonConformingPods() error {
 
 // Candidates returns the list of pods that are available for termination.
 // It returns all pods matching the label selector and at least one namespace.
-func (k *KubeConformity) EvaluateRules() ([]RuleResult, error) {
+func (k *KubeConformity) EvaluateRules() ([]rules.RuleResult, error) {
 
 	podList, err := k.Client.CoreV1().Pods(v1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
-		return []RuleResult{}, err
+		return []rules.RuleResult{}, err
 	}
 
-	ruleResults := []RuleResult{}
+	ruleResults := []rules.RuleResult{}
 	for _, rule := range k.KubeConformityConfig.RequestsFilledInRules {
-		result := rule.findNonConformingPods(podList.Items)
+		result := rule.FindNonConformingPods(podList.Items)
 		ruleResults = append(ruleResults, result)
 	}
 	for _, rule := range k.KubeConformityConfig.LimitsFilledInRules {
-		result := rule.findNonConformingPods(podList.Items)
+		result := rule.FindNonConformingPods(podList.Items)
 		ruleResults = append(ruleResults, result)
 	}
 	for _, rule := range k.KubeConformityConfig.LabelsFilledInRules {
-		result := rule.findNonConformingPods(podList.Items)
+		result := rule.FindNonConformingPods(podList.Items)
 		ruleResults = append(ruleResults, result)
 	}
 	return ruleResults, nil

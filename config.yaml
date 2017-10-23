@@ -2,7 +2,11 @@ labelsFilledInRules:
 - name: Check if label app is active on every pod
   labels:
   - app
+  filter:
+    namespaces: "!kube-system"
 limitsFilledInRules:
 - name: Checks if limits are filled in everywhere
+  filter:
+    namespaces: "!kube-system"
 requestsFilledInRules:
 - name: Checks if requests are filled in everywhere

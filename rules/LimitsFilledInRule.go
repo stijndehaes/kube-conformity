@@ -1,16 +1,19 @@
-package kubeconformity
+package rules
 
 import (
 	"k8s.io/client-go/pkg/api/v1"
+	"github.com/stijndehaes/kube-conformity/filters"
 )
 
 type LimitsFilledInRule struct {
-	Name string `yaml:"name"`
+	Name   string         `yaml:"name"`
+	Filter filters.Filter `yaml:"filter"`
 }
 
-func (r LimitsFilledInRule) findNonConformingPods(pods []v1.Pod) RuleResult {
+func (r LimitsFilledInRule) FindNonConformingPods(pods []v1.Pod) RuleResult {
+	namespaceFiltered := r.Filter.FilterPods(pods)
 	filteredList := []v1.Pod{}
-	for _, pod := range pods {
+	for _, pod := range namespaceFiltered {
 		var podNonConform = false
 
 		for _, container := range pod.Spec.Containers {

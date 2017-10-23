@@ -1,4 +1,4 @@
-package kubeconformity
+package config
 
 import (
 	"testing"

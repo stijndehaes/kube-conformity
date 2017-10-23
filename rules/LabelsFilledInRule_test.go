@@ -1,4 +1,4 @@
-package kubeconformity
+package rules
 
 import (
 	"testing"
@@ -8,56 +8,68 @@ import (
 )
 
 func TestFilterOnLabelsFilledIn(t *testing.T) {
-	rule := LabelsFilledInRule{"app label", []string{"app"}}
+	rule := LabelsFilledInRule{
+		Name:   "app label",
+		Labels: []string{"app"},
+	}
 	pod1 := newPodWithLabel("testing", "bar1", "test")
 	pod2 := newPodWithLabel("testing", "bar2", "app")
 	pods := []v1.Pod{
 		pod1,
 		pod2,
 	}
-	result := rule.findNonConformingPods(pods)
+	result := rule.FindNonConformingPods(pods)
 	assert.Equal(t, 1, len(result.Pods))
 	assert.Equal(t, pod1.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 	assert.NotEqual(t, pod2.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 }
 
 func TestFilterOnLabelsFilledInMultipleLables(t *testing.T) {
-	rule := LabelsFilledInRule{"app label",[]string{"app"}}
+	rule := LabelsFilledInRule{
+		Name:   "app label",
+		Labels: []string{"app"},
+	}
 	pod1 := newPodWithLabels("testing", "bar1", []string{})
-	pod2 := newPodWithLabels("testing", "bar2", []string{"app","environment"})
+	pod2 := newPodWithLabels("testing", "bar2", []string{"app", "environment"})
 	pods := []v1.Pod{
 		pod1,
 		pod2,
 	}
-	result := rule.findNonConformingPods(pods)
+	result := rule.FindNonConformingPods(pods)
 	assert.Equal(t, 1, len(result.Pods))
 	assert.Equal(t, pod1.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 	assert.NotEqual(t, pod2.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 }
 
 func TestFilterOnLabelsFilledInAllLabelsMatch(t *testing.T) {
-	rule := LabelsFilledInRule{"app label", []string{"app","environment"}}
+	rule := LabelsFilledInRule{
+		Name:   "app label",
+		Labels: []string{"app", "environment"},
+	}
 	pod1 := newPodWithLabels("testing", "bar1", []string{})
-	pod2 := newPodWithLabels("testing", "bar2", []string{"app","environment"})
+	pod2 := newPodWithLabels("testing", "bar2", []string{"app", "environment"})
 	pods := []v1.Pod{
 		pod1,
 		pod2,
 	}
-	result := rule.findNonConformingPods(pods)
+	result := rule.FindNonConformingPods(pods)
 	assert.Equal(t, 1, len(result.Pods))
 	assert.Equal(t, pod1.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 	assert.NotEqual(t, pod2.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 }
 
 func TestFilterOnLabelsFilledInOnlyOneLabelMatch(t *testing.T) {
-	rule := LabelsFilledInRule{"app label", []string{"app","environment"}}
-	pod1 := newPodWithLabels("testing", "bar1", []string{"app","other"})
-	pod2 := newPodWithLabels("testing", "bar2", []string{"app","environment"})
+	rule := LabelsFilledInRule{
+		Name:   "app label",
+		Labels: []string{"app", "environment"},
+	}
+	pod1 := newPodWithLabels("testing", "bar1", []string{"app", "other"})
+	pod2 := newPodWithLabels("testing", "bar2", []string{"app", "environment"})
 	pods := []v1.Pod{
 		pod1,
 		pod2,
 	}
-	result := rule.findNonConformingPods(pods)
+	result := rule.FindNonConformingPods(pods)
 	assert.Equal(t, 1, len(result.Pods))
 	assert.Equal(t, pod1.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 	assert.NotEqual(t, pod2.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
@@ -76,7 +88,7 @@ func newPodWithLabels(namespace, name string, labels []string) v1.Pod {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
-			Labels: labelMap,
+			Labels:    labelMap,
 		},
 	}
 }

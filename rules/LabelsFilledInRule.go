@@ -1,28 +1,24 @@
-package kubeconformity
+package rules
 
 import (
 	"k8s.io/client-go/pkg/api/v1"
 	"fmt"
+	"github.com/stijndehaes/kube-conformity/filters"
 )
 
 type LabelsFilledInRule struct {
-	Name   string   `yaml:"name"`
-	Labels []string `yaml:"labels"`
+	Name   string         `yaml:"name"`
+	Labels []string       `yaml:"labels"`
+	Filter filters.Filter `yaml:"filter"`
 }
 
-func (r LabelsFilledInRule) findNonConformingPods(pods []v1.Pod) RuleResult {
+func (r LabelsFilledInRule) FindNonConformingPods(pods []v1.Pod) RuleResult {
+	namespaceFiltered := r.Filter.FilterPods(pods)
 	filteredList := []v1.Pod{}
-	if len(r.Labels) == 0 {
-		return RuleResult{
-			Pods:     filteredList,
-			Reason:   fmt.Sprintf("Labels: %v are not filled in", r.Labels),
-			RuleName: r.Name,
-		}
-	}
-	for _, pod := range pods {
+	for _, pod := range namespaceFiltered {
 		for _, label := range r.Labels {
 			containsLabel := false
-			for podLabelKey, _ := range pod.ObjectMeta.Labels {
+			for podLabelKey := range pod.ObjectMeta.Labels {
 				if podLabelKey == label {
 					containsLabel = true
 				}

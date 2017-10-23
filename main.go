@@ -14,6 +14,7 @@ import (
 	"github.com/stijndehaes/kube-conformity/kubeconformity"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"github.com/stijndehaes/kube-conformity/config"
 )
 
 var (
@@ -63,18 +64,18 @@ func main() {
 	}
 }
 
-func ConstructConfig() kubeconformity.KubeConformityConfig {
-	config := kubeconformity.KubeConformityConfig{}
+func ConstructConfig() config.KubeConformityConfig {
+	kubeConfig := config.KubeConformityConfig{}
 
 	yamlFile, err := ioutil.ReadFile(configLocation)
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
-	err = yaml.Unmarshal(yamlFile, &config)
+	err = yaml.Unmarshal(yamlFile, &kubeConfig)
 	if err != nil {
 		log.Fatalf("Unmarshal: %v", err)
 	}
-	return config
+	return kubeConfig
 }
 
 func newClient() (*kubernetes.Clientset, error) {
@@ -84,14 +85,14 @@ func newClient() (*kubernetes.Clientset, error) {
 		}
 	}
 
-	config, err := clientcmd.BuildConfigFromFlags(master, kubeconfig)
+	kconfig, err := clientcmd.BuildConfigFromFlags(master, kubeconfig)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Infof("Targeting cluster at %s", config.Host)
+	log.Infof("Targeting cluster at %s", kconfig.Host)
 
-	client, err := kubernetes.NewForConfig(config)
+	client, err := kubernetes.NewForConfig(kconfig)
 	if err != nil {
 		return nil, err
 	}

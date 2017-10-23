@@ -13,5 +13,25 @@ At this moment there are three rules defined:
 * Resource requests filled in: Checks all pods if they have resource requests filled in
 * Limits requests filled in: Checks all pods if they have limits requests filled in
 
-To run this project you can use the provided docker image. An example deployment can be found in the examples folder.
+The rules are configured using a yaml config. An example of this config is:
+
+```yaml
+labelsFilledInRules:
+- name: Check if label app is active on every pod
+  labels:
+  - app
+  filter:
+    namespaces: "!kube-system"
+limitsFilledInRules:
+- name: Checks if limits are filled in everywhere
+  filter:
+    namespaces: "!kube-system"
+requestsFilledInRules:
+- name: Checks if requests are filled in everywhere
+  filter:
+    namespaces: "!kube-system"
+```
+
+To run this project you can use the provided docker image.
+An example deployment can be found in the examples folder.
 If you have an RBAC enabled cluster the minimum clusterrole is defined in the examples folder.

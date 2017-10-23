@@ -1,4 +1,4 @@
-package kubeconformity
+package rules
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -16,7 +16,7 @@ func TestFilterOnRequestsFilledIn(t *testing.T) {
 		pod1,
 		pod2,
 	}
-	result := rule.findNonConformingPods(pods)
+	result := rule.FindNonConformingPods(pods)
 	assert.Equal(t, 1, len(result.Pods))
 	assert.Equal(t, pod1.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 	assert.NotEqual(t, pod2.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)

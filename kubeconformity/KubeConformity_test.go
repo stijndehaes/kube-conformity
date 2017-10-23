@@ -7,6 +7,9 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/pkg/api/v1"
 	"bytes"
+	"github.com/stijndehaes/kube-conformity/config"
+	"github.com/stijndehaes/kube-conformity/rules"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var logOutput = bytes.NewBuffer([]byte{})
@@ -19,7 +22,7 @@ func TestFindNonConformingPods(t *testing.T) {
 		newPodWithLabels("default", "foo", []string{}),
 		newPodWithLabels("testing", "bar", []string{"app"}),
 	}
-	kubeConformity := setup(t, []string{}, pods)
+	kubeConformity := setup(t, pods)
 	conformityResult, err := kubeConformity.EvaluateRules()
 	if err != nil {
 		t.Fatal(err)
@@ -32,13 +35,13 @@ func TestLogNonConformingPodsResources(t *testing.T) {
 		newPodWithLabels("default", "foo", []string{}),
 		newPodWithLabels("testing", "bar", []string{"app"}),
 	}
-	kubeConformity := setup(t, []string{}, pods)
+	kubeConformity := setup(t, pods)
 	kubeConformity.LogNonConformingPods()
 	logOutput.String()
 	assert.Equal(t, "rule name: \nrule reason: Labels: [app] are not filled in\nfoo_default()\n", logOutput.String())
 }
 
-func setup(t *testing.T, labels []string, pods []v1.Pod) *KubeConformity {
+func setup(t *testing.T, pods []v1.Pod) *KubeConformity {
 	client := fake.NewSimpleClientset()
 
 	for _, pod := range pods {
@@ -47,13 +50,28 @@ func setup(t *testing.T, labels []string, pods []v1.Pod) *KubeConformity {
 		}
 	}
 
-	config := KubeConformityConfig{
-		LabelsFilledInRules: []LabelsFilledInRule{
-			LabelsFilledInRule{Labels: []string{"app"}},
+	kubeConfig := config.KubeConformityConfig{
+		LabelsFilledInRules: []rules.LabelsFilledInRule{
+			{Labels: []string{"app"}},
 		},
 	}
 
 	logOutput.Reset()
 
-	return New(client, logger, config)
+	return New(client, logger, kubeConfig)
+}
+
+
+func newPodWithLabels(namespace, name string, labels []string) v1.Pod {
+	labelMap := make(map[string]string)
+	for _, label := range labels {
+		labelMap[label] = "randomString"
+	}
+	return v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      name,
+			Labels: labelMap,
+		},
+	}
 }
