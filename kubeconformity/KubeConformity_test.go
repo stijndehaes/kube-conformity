@@ -18,35 +18,6 @@ var logger = log.New(logOutput, "", 0)
 // TestCandidatesNamespaces tests that the list of pods available for
 // termination can be restricted by namespaces.
 func TestFindNonConformingPods(t *testing.T) {
-	pods := []v1.Pod{
-		newPodWithLabels("default", "foo", []string{}),
-		newPodWithLabels("testing", "bar", []string{"app"}),
-	}
-	kubeConformity := setup(t, pods)
-	conformityResult := kubeConformity.EvaluateRules()
-	assert.Equal(t, 1, len(conformityResult))
-}
-
-func TestLogNonConformingPodsResources(t *testing.T) {
-	pods := []v1.Pod{
-		newPodWithLabels("default", "foo", []string{}),
-		newPodWithLabels("testing", "bar", []string{"app"}),
-	}
-	kubeConformity := setup(t, pods)
-	kubeConformity.LogNonConformingPods()
-	logOutput.String()
-	assert.Equal(t, "rule name: \nrule reason: Labels: [app] are not filled in\nfoo_default()\n", logOutput.String())
-}
-
-func setup(t *testing.T, pods []v1.Pod) *KubeConformity {
-	client := fake.NewSimpleClientset()
-
-	for _, pod := range pods {
-		if _, err := client.Core().Pods(pod.Namespace).Create(&pod); err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	kubeConfig := config.KubeConformityConfig{
 		LabelsFilledInRules: []rules.LabelsFilledInRule{
 			{Labels: []string{"app"}},
@@ -54,7 +25,39 @@ func setup(t *testing.T, pods []v1.Pod) *KubeConformity {
 		LimitsFilledInRules:   []rules.LimitsFilledInRule{{}},
 		RequestsFilledInRules: []rules.RequestsFilledInRule{{}},
 	}
+	pods := []v1.Pod{
+		newPodWithLabels("default", "foo", []string{}),
+		newPodWithLabels("testing", "bar", []string{"app"}),
+	}
+	kubeConformity := setup(t, pods, kubeConfig)
+	conformityResult := kubeConformity.EvaluateRules()
+	assert.Equal(t, 3, len(conformityResult))
+}
 
+func TestLogNonConformingPodsResources(t *testing.T) {
+	kubeConfig := config.KubeConformityConfig{
+		LabelsFilledInRules: []rules.LabelsFilledInRule{
+			{Labels: []string{"app"}},
+		},
+	}
+	pods := []v1.Pod{
+		newPodWithLabels("default", "foo", []string{}),
+		newPodWithLabels("testing", "bar", []string{"app"}),
+	}
+	kubeConformity := setup(t, pods, kubeConfig)
+	kubeConformity.LogNonConformingPods()
+	logOutput.String()
+	assert.Equal(t, "rule name: \nrule reason: Labels: [app] are not filled in\nfoo_default()\n", logOutput.String())
+}
+
+func setup(t *testing.T, pods []v1.Pod, kubeConfig config.KubeConformityConfig) *KubeConformity {
+	client := fake.NewSimpleClientset()
+
+	for _, pod := range pods {
+		if _, err := client.Core().Pods(pod.Namespace).Create(&pod); err != nil {
+			t.Fatal(err)
+		}
+	}
 	logOutput.Reset()
 
 	return New(client, logger, kubeConfig)
