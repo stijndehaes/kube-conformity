@@ -23,10 +23,7 @@ func TestFindNonConformingPods(t *testing.T) {
 		newPodWithLabels("testing", "bar", []string{"app"}),
 	}
 	kubeConformity := setup(t, pods)
-	conformityResult, err := kubeConformity.EvaluateRules()
-	if err != nil {
-		t.Fatal(err)
-	}
+	conformityResult := kubeConformity.EvaluateRules()
 	assert.Equal(t, 1, len(conformityResult))
 }
 
@@ -54,13 +51,14 @@ func setup(t *testing.T, pods []v1.Pod) *KubeConformity {
 		LabelsFilledInRules: []rules.LabelsFilledInRule{
 			{Labels: []string{"app"}},
 		},
+		LimitsFilledInRules:   []rules.LimitsFilledInRule{{}},
+		RequestsFilledInRules: []rules.RequestsFilledInRule{{}},
 	}
 
 	logOutput.Reset()
 
 	return New(client, logger, kubeConfig)
 }
-
 
 func newPodWithLabels(namespace, name string, labels []string) v1.Pod {
 	labelMap := make(map[string]string)
@@ -71,7 +69,7 @@ func newPodWithLabels(namespace, name string, labels []string) v1.Pod {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
-			Labels: labelMap,
+			Labels:    labelMap,
 		},
 	}
 }

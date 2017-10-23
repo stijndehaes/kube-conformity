@@ -13,9 +13,6 @@ type Filter struct {
 }
 
 func (f Filter) FilterPods(pods []v1.Pod) []v1.Pod {
-	if f.NamespacesString == "" {
-		return pods
-	}
 	namespaces, err := labels.Parse(f.NamespacesString)
 	if err != nil {
 		log.Fatal(err)

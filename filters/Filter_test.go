@@ -17,7 +17,6 @@ func TestNamespaceFilterFilterPodsEmptyString(t *testing.T) {
 	assert.Equal(t, "bar2", filteredPods[1].Name)
 }
 
-
 func TestNamespaceFilterFilterPodsInclude(t *testing.T) {
 	filter := Filter{
 		NamespacesString: "default",
