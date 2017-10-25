@@ -36,3 +36,17 @@ func (r LabelsFilledInRule) FindNonConformingPods(pods []v1.Pod) RuleResult {
 		RuleName: r.Name,
 	}
 }
+
+func (r *LabelsFilledInRule) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type plain LabelsFilledInRule
+	if err := unmarshal((*plain)(r)); err != nil {
+		return err
+	}
+	if len(r.Labels) == 0 {
+		return fmt.Errorf("Missing labels for LabelsFilledInRule")
+	}
+	if r.Name == "" {
+		return fmt.Errorf("Missing name for LabelsFilledInRule")
+	}
+	return nil
+}

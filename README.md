@@ -16,17 +16,18 @@ At this moment there are three rules defined:
 The rules are configured using a yaml config. An example of this config is:
 
 ```yaml
-labelsFilledInRules:
+interval: 1h
+labels_filled_in_rules:
 - name: Check if label app is active on every pod
   labels:
   - app
   filter:
     namespaces: "!kube-system"
-limitsFilledInRules:
+limits_filled_in_rules:
 - name: Checks if limits are filled in everywhere
   filter:
     namespaces: "!kube-system"
-requestsFilledInRules:
+requests_filled_in_rules:
 - name: Checks if requests are filled in everywhere
   filter:
     namespaces: "!kube-system"

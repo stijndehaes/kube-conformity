@@ -14,10 +14,10 @@ import (
 type KubeConformity struct {
 	Client               kubernetes.Interface
 	Logger               log.StdLogger
-	KubeConformityConfig config.KubeConformityConfig
+	KubeConformityConfig config.Config
 }
 
-func New(client kubernetes.Interface, logger log.StdLogger, config config.KubeConformityConfig) *KubeConformity {
+func New(client kubernetes.Interface, logger log.StdLogger, config config.Config) *KubeConformity {
 	return &KubeConformity{
 		Client:               client,
 		Logger:               logger,

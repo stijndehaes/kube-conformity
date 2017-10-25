@@ -20,7 +20,6 @@ import (
 var (
 	master         string
 	kubeconfig     string
-	interval       time.Duration
 	debug          bool
 	version        string
 	configLocation string
@@ -29,7 +28,6 @@ var (
 func init() {
 	kingpin.Flag("master", "The address of the Kubernetes cluster to target").StringVar(&master)
 	kingpin.Flag("kubeconfig", "Path to a kubeconfig file").StringVar(&kubeconfig)
-	kingpin.Flag("interval", "Interval between conformity checks").Default("1h").DurationVar(&interval)
 	kingpin.Flag("debug", "Enable debug logging.").BoolVar(&debug)
 	kingpin.Flag("config-location", "The location of the config.yaml").Default("config.yaml").StringVar(&configLocation)
 }
@@ -59,13 +57,13 @@ func main() {
 			log.Fatal(err)
 		}
 
-		log.Debugf("Sleeping for %s...", interval)
-		time.Sleep(interval)
+		log.Debugf("Sleeping for %s...", kubeConformity.KubeConformityConfig.Interval)
+		time.Sleep(kubeConformity.KubeConformityConfig.Interval)
 	}
 }
 
-func ConstructConfig() config.KubeConformityConfig {
-	kubeConfig := config.KubeConformityConfig{}
+func ConstructConfig() config.Config {
+	kubeConfig := config.Config{}
 
 	yamlFile, err := ioutil.ReadFile(configLocation)
 	if err != nil {

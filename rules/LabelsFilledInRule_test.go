@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"k8s.io/client-go/pkg/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"gopkg.in/yaml.v2"
 )
 
 func TestFilterOnLabelsFilledIn(t *testing.T) {
@@ -73,6 +74,48 @@ func TestFilterOnLabelsFilledInOnlyOneLabelMatch(t *testing.T) {
 	assert.Equal(t, 1, len(result.Pods))
 	assert.Equal(t, pod1.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 	assert.NotEqual(t, pod2.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
+}
+
+func TestLabelsFilledInRule_UnmarshalYAML_LabelsNotFilledIn(t *testing.T) {
+	string := `
+name: app label filled in`
+
+	rule := LabelsFilledInRule{}
+
+	err := yaml.Unmarshal([]byte(string), &rule)
+
+	if err == nil {
+		t.Fail()
+	}
+}
+
+func TestLabelsFilledInRule_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
+	string := `
+labels:
+- app`
+
+	rule := LabelsFilledInRule{}
+
+	err := yaml.Unmarshal([]byte(string), &rule)
+
+	if err == nil {
+		t.Fail()
+	}
+}
+
+func TestLabelsFilledInRule_UnmarshalYAML(t *testing.T) {
+	string := `
+name: app label filled in
+labels:
+- app`
+
+	rule := LabelsFilledInRule{}
+
+	err := yaml.Unmarshal([]byte(string), &rule)
+
+	if err != nil {
+		t.Fail()
+	}
 }
 
 func newPodWithLabel(namespace, name, label string) v1.Pod {

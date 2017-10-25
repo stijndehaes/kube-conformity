@@ -18,7 +18,7 @@ var logger = log.New(logOutput, "", 0)
 // TestCandidatesNamespaces tests that the list of pods available for
 // termination can be restricted by namespaces.
 func TestFindNonConformingPods(t *testing.T) {
-	kubeConfig := config.KubeConformityConfig{
+	kubeConfig := config.Config{
 		LabelsFilledInRules: []rules.LabelsFilledInRule{
 			{Labels: []string{"app"}},
 		},
@@ -35,7 +35,7 @@ func TestFindNonConformingPods(t *testing.T) {
 }
 
 func TestLogNonConformingPodsResources(t *testing.T) {
-	kubeConfig := config.KubeConformityConfig{
+	kubeConfig := config.Config{
 		LabelsFilledInRules: []rules.LabelsFilledInRule{
 			{Labels: []string{"app"}},
 		},
@@ -50,7 +50,7 @@ func TestLogNonConformingPodsResources(t *testing.T) {
 	assert.Equal(t, "rule name: \nrule reason: Labels: [app] are not filled in\nfoo_default()\n", logOutput.String())
 }
 
-func setup(t *testing.T, pods []v1.Pod, kubeConfig config.KubeConformityConfig) *KubeConformity {
+func setup(t *testing.T, pods []v1.Pod, kubeConfig config.Config) *KubeConformity {
 	client := fake.NewSimpleClientset()
 
 	for _, pod := range pods {

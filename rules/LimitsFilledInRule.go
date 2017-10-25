@@ -3,6 +3,7 @@ package rules
 import (
 	"k8s.io/client-go/pkg/api/v1"
 	"github.com/stijndehaes/kube-conformity/filters"
+	"fmt"
 )
 
 type LimitsFilledInRule struct {
@@ -31,4 +32,15 @@ func (r LimitsFilledInRule) FindNonConformingPods(pods []v1.Pod) RuleResult {
 		Reason:   "Limits are not filled in",
 		RuleName: r.Name,
 	}
+}
+
+func (r *LimitsFilledInRule) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type plain LimitsFilledInRule
+	if err := unmarshal((*plain)(r)); err != nil {
+		return err
+	}
+	if r.Name == "" {
+		return fmt.Errorf("Missing name for LimitsFilledInRule")
+	}
+	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"gopkg.in/yaml.v2"
 )
 
 func TestFilterOnRequestsFilledIn(t *testing.T) {
@@ -45,5 +46,31 @@ func newPodWithRequests(namespace, name, requestCpu, requestMemory string) v1.Po
 				},
 			},
 		},
+	}
+}
+
+func TestRequestsFilledInRule_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
+	string := `
+filter:
+  namespaces: test`
+
+	rule := RequestsFilledInRule{}
+
+	err := yaml.Unmarshal([]byte(string), &rule)
+
+	if err == nil {
+		t.Fail()
+	}
+}
+
+func TestRequestsFilledInRule_UnmarshalYAML(t *testing.T) {
+	string := `name: requests filled in`
+
+	rule := RequestsFilledInRule{}
+
+	err := yaml.Unmarshal([]byte(string), &rule)
+
+	if err != nil {
+		t.Fail()
 	}
 }

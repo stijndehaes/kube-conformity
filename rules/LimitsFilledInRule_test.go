@@ -6,6 +6,7 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"gopkg.in/yaml.v2"
 )
 
 func TestFilterOnLimits(t *testing.T) {
@@ -45,5 +46,31 @@ func newPodWithLimits(namespace, name, limitCpu, limitMemory string) v1.Pod {
 				},
 			},
 		},
+	}
+}
+
+func TestLimitsFilledInRule_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
+	string := `
+filter:
+  namespaces: test`
+
+	rule := LimitsFilledInRule{}
+
+	err := yaml.Unmarshal([]byte(string), &rule)
+
+	if err == nil {
+		t.Fail()
+	}
+}
+
+func TestLimitsFilledInRule_UnmarshalYAML(t *testing.T) {
+	string := `name: limits filled in`
+
+	rule := LimitsFilledInRule{}
+
+	err := yaml.Unmarshal([]byte(string), &rule)
+
+	if err != nil {
+		t.Fail()
 	}
 }
