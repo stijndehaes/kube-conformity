@@ -33,7 +33,7 @@ func (k *KubeConformity) LogNonConformingPods() error {
 		ruleReason := fmt.Sprintf("rule reason: %s", ruleResult.Reason)
 		k.Logger.Println(ruleReason)
 		for _, pod := range ruleResult.Pods {
-			podName := fmt.Sprintf("    %s_%s(%s)", pod.Name, pod.Namespace, pod.UID)
+			podName := fmt.Sprintf("%s_%s(%s)", pod.Name, pod.Namespace, pod.UID)
 			k.Logger.Println(podName)
 		}
 	}
