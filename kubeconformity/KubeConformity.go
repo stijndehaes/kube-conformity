@@ -28,10 +28,19 @@ func New(client kubernetes.Interface, logger log.StdLogger, config config.Config
 func (k *KubeConformity) LogNonConformingPods() error {
 	conformityResults := k.EvaluateRules()
 	for _, ruleResult := range conformityResults {
-		k.Logger.Printf("rule name: %s", ruleResult.RuleName)
-		k.Logger.Printf("rule reason: %s", ruleResult.Reason)
+		ruleName := fmt.Sprintf("rule name: %s", ruleResult.RuleName)
+		k.Logger.Println(ruleName)
+		ruleReason := fmt.Sprintf("rule reason: %s", ruleResult.Reason)
+		k.Logger.Println(ruleReason)
 		for _, pod := range ruleResult.Pods {
-			k.Logger.Print(fmt.Sprintf("%s_%s(%s)", pod.Name, pod.Namespace, pod.UID))
+			podName := fmt.Sprintf("    %s_%s(%s)", pod.Name, pod.Namespace, pod.UID)
+			k.Logger.Println(podName)
+		}
+	}
+	if k.KubeConformityConfig.EmailConfig.Enabled {
+		err := k.KubeConformityConfig.EmailConfig.SendMail(conformityResults)
+		if err != nil {
+			return err
 		}
 	}
 	return nil

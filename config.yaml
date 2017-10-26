@@ -11,3 +11,9 @@ limits_filled_in_rules:
     namespaces: "!kube-system"
 requests_filled_in_rules:
 - name: Checks if requests are filled in everywhere
+email_config:
+  enabled: true
+  to: stijndehaes@gmail.com
+  from: no-reply@kube-conformity.com
+  host: 127.0.0.1
+  port: 1025

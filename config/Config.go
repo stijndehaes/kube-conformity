@@ -5,7 +5,9 @@ import (
 	"time"
 	"fmt"
 	"net/smtp"
-	"log"
+	"strconv"
+	"bytes"
+	"html/template"
 )
 
 type Config struct {
@@ -22,9 +24,11 @@ type EmailConfig struct {
 	From         string `yaml:"from,omitempty"`
 	Host         string `yaml:"host,omitempty"`
 	Port         int    `yaml:"port"`
+	Subject      string `yaml:"subject"`
 	AuthUsername string `yaml:"auth_username,omitempty"`
 	AuthPassword string `yaml:"auth_password,omitempty"`
 	AuthIdentity string `yaml:"auth_identity,omitempty"`
+	Template     string `yaml:"template,omitempty"`
 }
 
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -38,13 +42,20 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+var (
+	DefaultEmailConfig = EmailConfig{
+		Enabled: false,
+		Subject: "kube-conformity",
+		Template: "mailtemplate.html",
+		Port: 24,
+	}
+)
+
 func (c *EmailConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultEmailConfig
 	type plain EmailConfig
 	if err := unmarshal((*plain)(c)); err != nil {
 		return err
-	}
-	if !c.Enabled {
-		return nil
 	}
 	if c.To == "" {
 		return fmt.Errorf("missing to address in email config")
@@ -52,27 +63,49 @@ func (c *EmailConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if c.Host == "" {
 		return fmt.Errorf("missing host in email config")
 	}
-	if c.Port == 0 {
-		c.Port = 24
-	}
 	return nil
 }
 
-func (e EmailConfig) sendMail(message []byte) {
+func (e EmailConfig) RenderTemplate(results []rules.RuleResult) (string, error) {
+	templateData := struct {
+		RuleResults []rules.RuleResult
+	}{
+		RuleResults: results,
+	}
+	t, err := template.ParseFiles(e.Template)
+	if err != nil {
+		return "", err
+	}
+	buf := new(bytes.Buffer)
+	if err = t.Execute(buf, templateData); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
+func (e EmailConfig) SendMail(results []rules.RuleResult) error {
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	subject := "Subject: " + e.Subject + "!\n"
+	body, err := e.RenderTemplate(results)
+	if err != nil {
+		return err
+	}
+	msg := []byte(subject + mime + "\n" + body)
 	auth := smtp.PlainAuth(
 		e.AuthIdentity,
 		e.AuthUsername,
 		e.AuthPassword,
 		e.Host,
 	)
-	err := smtp.SendMail(
-		e.Host+":"+string(e.Port),
+	err = smtp.SendMail(
+		e.Host+":"+strconv.Itoa(e.Port),
 		auth,
 		e.From,
 		[]string{e.To},
-		message,
+		msg,
 	)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }

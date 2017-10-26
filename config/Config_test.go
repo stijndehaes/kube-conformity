@@ -85,3 +85,48 @@ requests_filled_in_rules:
 	}
 	assert.Len(t, config.RequestsFilledInRules, 1)
 }
+
+func TestEmailConfig_UnmarshalYAML_FailMissingHost(t *testing.T) {
+	test := `
+to: test@gmail.com`
+
+	config := EmailConfig{}
+
+	err := yaml.Unmarshal([]byte(test), &config)
+
+	if err == nil {
+		assert.Fail(t, "Expected error for missing host")
+	}
+}
+
+func TestEmailConfig_UnmarshalYAML_FailMissingTo(t *testing.T) {
+	test := `
+host: 10.10.10.10`
+
+	config := EmailConfig{}
+
+	err := yaml.Unmarshal([]byte(test), &config)
+
+	if err == nil {
+		assert.Fail(t, "Expected error for missing to")
+	}
+}
+
+func TestEmailConfig_UnmarshalYAML_DefaultValues(t *testing.T) {
+	test := `
+host: 10.10.10.10
+to: test@gmail.com`
+
+	config := EmailConfig{}
+
+	err := yaml.Unmarshal([]byte(test), &config)
+
+	if err != nil {
+		t.Fail()
+	}
+
+	assert.Equal(t, "mailtemplate.html", config.Template)
+	assert.Equal(t, 24, config.Port)
+	assert.Equal(t, "kube-conformity", config.Subject)
+	assert.False(t, config.Enabled)
+}
