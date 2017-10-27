@@ -38,10 +38,7 @@ func (k *KubeConformity) LogNonConformingPods() error {
 		}
 	}
 	if k.KubeConformityConfig.EmailConfig.Enabled {
-		err := k.KubeConformityConfig.EmailConfig.SendMail(conformityResults)
-		if err != nil {
-			return err
-		}
+		return k.KubeConformityConfig.EmailConfig.SendMail(conformityResults)
 	}
 	return nil
 }
@@ -49,7 +46,6 @@ func (k *KubeConformity) LogNonConformingPods() error {
 // Candidates returns the list of pods that are available for termination.
 // It returns all pods matching the label selector and at least one namespace.
 func (k *KubeConformity) EvaluateRules() []rules.RuleResult {
-
 	podList, err := k.Client.CoreV1().Pods(v1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
 		k.Logger.Fatal(err)

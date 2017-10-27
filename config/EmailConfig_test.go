@@ -96,3 +96,15 @@ func TestEmailConfig_ConstructEmailBody_TemplateNoExist(t *testing.T) {
 	assert.NotEqual(t, nil, err, "Should fail because template does not exist")
 	assert.Equal(t, []byte{}, body)
 }
+
+func TestEmailConfig_UnmarshalYAML_Error(t *testing.T) {
+	test := `random`
+
+	config := EmailConfig{}
+
+	err := yaml.Unmarshal([]byte(test), &config)
+
+	if err == nil {
+		assert.Fail(t, "Should have failed")
+	}
+}

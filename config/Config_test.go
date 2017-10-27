@@ -45,11 +45,7 @@ labels_filled_in_rules:
 
 	config := Config{}
 
-	err := yaml.Unmarshal([]byte(test), &config)
-
-	if err != nil {
-		t.Error(err)
-	}
+	yaml.Unmarshal([]byte(test), &config)
 	assert.Len(t, config.LabelsFilledInRules, 1)
 }
 
@@ -62,11 +58,7 @@ limits_filled_in_rules:
 
 	config := Config{}
 
-	err := yaml.Unmarshal([]byte(test), &config)
-
-	if err != nil {
-		t.Error(err)
-	}
+	yaml.Unmarshal([]byte(test), &config)
 	assert.Len(t, config.LimitsFilledInRules, 1)
 }
 
@@ -78,10 +70,18 @@ requests_filled_in_rules:
 
 	config := Config{}
 
+	yaml.Unmarshal([]byte(test), &config)
+	assert.Len(t, config.RequestsFilledInRules, 1)
+}
+
+func TestKubeConformityConfig_UnmarshalYAML_Error(t *testing.T) {
+	test := `random`
+
+	config := Config{}
+
 	err := yaml.Unmarshal([]byte(test), &config)
 
-	if err != nil {
-		t.Error(err)
+	if err == nil {
+		assert.Fail(t, "Should have failed")
 	}
-	assert.Len(t, config.RequestsFilledInRules, 1)
 }
