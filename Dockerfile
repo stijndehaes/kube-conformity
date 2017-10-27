@@ -13,7 +13,10 @@ FROM alpine:3.6
 MAINTAINER Stijn De Haes <stijndehaes@gmail.com>
 
 RUN addgroup -S kube-conformity && adduser -S -g kube-conformity kube-conformity
+COPY mailtemplate.html /config/kube-conformity/default/mailtemplate.html
+COPY config.yaml /config/kube-conformity/default/config.yaml
 COPY --from=builder /bin/kube-conformity /bin/kube-conformity
 
 USER kube-conformity
 ENTRYPOINT ["/bin/kube-conformity"]
+CMD config-location=/config/kube-conformity/config.yaml
