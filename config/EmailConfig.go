@@ -15,6 +15,7 @@ var (
 		Subject:  "kube-conformity",
 		Template: "mailtemplate.html",
 		Port:     24,
+		From:     "no-reply@kube-conformity.com",
 	}
 )
 

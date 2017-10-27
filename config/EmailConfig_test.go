@@ -49,6 +49,7 @@ to: test@gmail.com`
 	assert.Equal(t, "mailtemplate.html", config.Template)
 	assert.Equal(t, 24, config.Port)
 	assert.Equal(t, "kube-conformity", config.Subject)
+	assert.Equal(t, "no-reply@kube-conformity.com", config.From)
 	assert.False(t, config.Enabled)
 }
 
