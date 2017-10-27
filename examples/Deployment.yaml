@@ -14,7 +14,6 @@ spec:
       - name: kube-conformity
         image: sdehaes/kube-conformity:latest
         args:
-        - --interval=4h
         - --config-location=/etc/config/config.yaml
         volumeMounts:
         - name: config-volume
