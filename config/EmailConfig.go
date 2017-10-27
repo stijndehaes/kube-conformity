@@ -11,10 +11,10 @@ import (
 
 var (
 	DefaultEmailConfig = EmailConfig{
-		Enabled: false,
-		Subject: "kube-conformity",
+		Enabled:  false,
+		Subject:  "kube-conformity",
 		Template: "mailtemplate.html",
-		Port: 24,
+		Port:     24,
 	}
 )
 
@@ -63,30 +63,22 @@ func (e EmailConfig) RenderTemplate(results []rules.RuleResult) (string, error) 
 	return buf.String(), nil
 }
 
-func (e EmailConfig) SendMail(results []rules.RuleResult) error {
+func (e EmailConfig) ConstructEmailBody(results []rules.RuleResult) ([]byte, error) {
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 	subject := "Subject: " + e.Subject + "!\n"
 	body, err := e.RenderTemplate(results)
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
-	msg := []byte(subject + mime + "\n" + body)
-	auth := smtp.PlainAuth(
-		e.AuthIdentity,
-		e.AuthUsername,
-		e.AuthPassword,
-		e.Host,
-	)
-	err = smtp.SendMail(
-		e.Host+":"+strconv.Itoa(e.Port),
-		auth,
-		e.From,
-		[]string{e.To},
-		msg,
-	)
+	return []byte(subject + mime + "\n" + body), nil
+}
+
+func (e EmailConfig) SendMail(results []rules.RuleResult) error {
+	msg, err := e.ConstructEmailBody(results)
 	if err != nil {
 		return err
 	}
-	return nil
+	auth := smtp.PlainAuth(e.AuthIdentity, e.AuthUsername, e.AuthPassword, e.Host)
+	err = smtp.SendMail(e.Host+":"+strconv.Itoa(e.Port), auth, e.From, []string{e.To}, msg)
+	return err
 }
-

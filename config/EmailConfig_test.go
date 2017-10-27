@@ -69,3 +69,30 @@ func TestEmailConfig_RenderTemplate(t *testing.T) {
 	}
 	assert.NotEqual(t, "", template)
 }
+
+func TestEmailConfig_ConstructEmailBody(t *testing.T) {
+	eConfig := DefaultEmailConfig
+	eConfig.Enabled = true
+	eConfig.Template = "../mailtemplate.html"
+
+	body, err := eConfig.ConstructEmailBody([]rules.RuleResult{
+		{
+			Reason:   "A reason",
+			RuleName: "A rule name",
+		},
+	})
+
+	if err != nil {
+		assert.Fail(t, "Body should render correctly")
+	}
+	assert.NotEqual(t, "", body)
+}
+
+func TestEmailConfig_ConstructEmailBody_TemplateNoExist(t *testing.T) {
+	eConfig := DefaultEmailConfig
+	eConfig.Enabled = true
+	eConfig.Template = "test.html"
+	body, err := eConfig.ConstructEmailBody([]rules.RuleResult{{}})
+	assert.NotEqual(t, nil, err, "Should fail because template does not exist")
+	assert.Equal(t, []byte{}, body)
+}
