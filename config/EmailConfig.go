@@ -7,6 +7,7 @@ import (
 	"github.com/stijndehaes/kube-conformity/rules"
 	"html/template"
 	"strconv"
+	"encoding/base64"
 )
 
 var (
@@ -64,14 +65,32 @@ func (e EmailConfig) RenderTemplate(results []rules.RuleResult) (string, error) 
 	return buf.String(), nil
 }
 
+func(e EmailConfig) GetMailHeaders() map[string]string {
+	headers := make(map[string]string)
+	headers["From"] = e.From
+	headers["To"] = e.To
+	headers["Subject"] = e.Subject + "!"
+	headers["MIME-Version"] = "1.0"
+	headers["Content-Type"] = "text/html; charset=\"utf-8\""
+	headers["Content-Transfer-Encoding"] = "base64"
+	return headers
+}
+
+func ConstructHeadersString(headers map[string]string) string {
+	message := ""
+	for k, v := range headers {
+		message += fmt.Sprintf("%s: %s\r\n", k, v)
+	}
+	return message
+}
+
 func (e EmailConfig) ConstructEmailBody(results []rules.RuleResult) ([]byte, error) {
-	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	subject := "Subject: " + e.Subject + "!\n"
+	headers := ConstructHeadersString(e.GetMailHeaders())
 	body, err := e.RenderTemplate(results)
 	if err != nil {
 		return []byte{}, err
 	}
-	return []byte(subject + mime + "\n" + body), nil
+	return []byte(headers + "\n" + base64.StdEncoding.EncodeToString([]byte(body))), nil
 }
 
 func (e EmailConfig) SendMail(results []rules.RuleResult) error {

@@ -109,3 +109,26 @@ func TestEmailConfig_UnmarshalYAML_Error(t *testing.T) {
 		assert.Fail(t, "Should have failed")
 	}
 }
+
+func TestEmailConfig_GetMailHeaders(t *testing.T) {
+	eConfig := DefaultEmailConfig
+	eConfig.To = "test@mail.com"
+	headers := eConfig.GetMailHeaders()
+
+	assert.Equal(t, "no-reply@kube-conformity.com", headers["From"])
+	assert.Equal(t, "test@mail.com", headers["To"])
+	assert.Equal(t, "kube-conformity!", headers["Subject"])
+	assert.Equal(t, "1.0", headers["MIME-Version"])
+	assert.Equal(t, "text/html; charset=\"utf-8\"", headers["Content-Type"])
+	assert.Equal(t, "base64", headers["Content-Transfer-Encoding"])
+}
+
+func TestConstructHeadersString(t *testing.T) {
+	headers := make(map[string]string)
+	headers["Test1"] = "test1"
+	headers["Test2"] = "test2"
+
+	string := ConstructHeadersString(headers)
+
+	assert.Equal(t, "Test1: test1\r\nTest2: test2\r\n", string)
+}
