@@ -16,6 +16,7 @@ RUN addgroup -S kube-conformity && adduser -S -g kube-conformity kube-conformity
 COPY mailtemplate.html /etc/kube-conformity/mailtemplate.html
 COPY config.yaml /etc/kube-conformity/config.yaml
 COPY --from=builder /bin/kube-conformity /etc/kube-conformity/kube-conformity
+WORKDIR /etc/kube-conformity
 
 USER kube-conformity
-ENTRYPOINT ["/etc/kube-conformity/kube-conformity"]
+ENTRYPOINT ["kube-conformity"]
