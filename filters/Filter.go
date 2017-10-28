@@ -6,6 +6,7 @@ import (
 	"log"
 	"k8s.io/apimachinery/pkg/selection"
 	"fmt"
+	"github.com/emicklei/go-restful"
 )
 
 type Filter struct {
@@ -13,18 +14,60 @@ type Filter struct {
 }
 
 func (f Filter) FilterPods(pods []v1.Pod) []v1.Pod {
-	namespaces, err := labels.Parse(f.NamespacesString)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if namespaces.Empty() {
+	return f.filterOnNamespaces(pods)
+}
+
+func (f Filter) filterOnAnnotations(pods []v1.Pod) []v1.Pod {
+	reqIncl, reqExcl, _ := ParseFilterString(f.NamespacesString)
+
+	if len(reqIncl) == 0 && len(reqExcl) == 0 {
 		return pods
 	}
 
-	filteredList := []v1.Pod{}
+	filteredList:= []v1.Pod{}
+
+	for _, pod := range pods {
+		// if there aren't any including requirements, we're in by default
+		included := len(reqIncl) == 0
+
+		// convert the pod's namespace to an equivalent label selector
+		selector := labels.Set{pod.Namespace: ""}
+
+		// include pod if one including requirement matches
+		for _, req := range reqIncl {
+			if req.Matches(selector) {
+				included = true
+				break
+			}
+		}
+
+		// exclude pod if it is filtered out by at least one excluding requirement
+		for _, req := range reqExcl {
+			if !req.Matches(selector) {
+				included = false
+				break
+			}
+		}
+
+		if included {
+			filteredList = append(filteredList, pod)
+		}
+	}
+
+	return filteredList
+}
+
+func ParseFilterString(string string) ([]labels.Requirement, []labels.Requirement, error) {
+	selectors, err := labels.Parse(string)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if selectors.Empty() {
+		return []labels.Requirement{}, []labels.Requirement{}, nil
+	}
 
 	// split requirements into including and excluding groups
-	reqs, _ := namespaces.Requirements()
+	reqs, _ := selectors.Requirements()
 	reqIncl := []labels.Requirement{}
 	reqExcl := []labels.Requirement{}
 
@@ -35,10 +78,20 @@ func (f Filter) FilterPods(pods []v1.Pod) []v1.Pod {
 		case selection.DoesNotExist:
 			reqExcl = append(reqExcl, req)
 		default:
-			log.Fatal(fmt.Errorf("unsupported operator: %s", req.Operator()))
-			return filteredList
+			return []labels.Requirement{}, []labels.Requirement{}, error(fmt.Errorf("unsupported operator: %s", req.Operator()))
 		}
 	}
+	return reqIncl, reqExcl, nil
+}
+
+func (f Filter) filterOnNamespaces(pods []v1.Pod) []v1.Pod {
+	reqIncl, reqExcl, _ := ParseFilterString(f.NamespacesString)
+
+	if len(reqIncl) == 0 && len(reqExcl) == 0 {
+		return pods
+	}
+
+	filteredList:= []v1.Pod{}
 
 	for _, pod := range pods {
 		// if there aren't any including requirements, we're in by default
