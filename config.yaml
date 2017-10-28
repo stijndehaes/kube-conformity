@@ -17,4 +17,4 @@ email_config:
   from: no-reply@kube-conformity.com
   host: 127.0.0.1
   port: 1025
-  template: mailtemplate.html
+  template: /etc/kube-conformity/mailtemplate.html
