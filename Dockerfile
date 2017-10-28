@@ -14,9 +14,8 @@ MAINTAINER Stijn De Haes <stijndehaes@gmail.com>
 
 RUN addgroup -S kube-conformity && adduser -S -g kube-conformity kube-conformity
 COPY mailtemplate.html /etc/kube-conformity/mailtemplate.html
-COPY config.yaml /bin/kube-conformity/config.yaml
-COPY --from=builder /bin/kube-conformity /bin/kube-conformity
+COPY config.yaml /etc/kube-conformity/config.yaml
+COPY --from=builder /bin/kube-conformity /etc/kube-conformity/kube-conformity
 
 USER kube-conformity
-ENTRYPOINT ["/bin/kube-conformity"]
-CMD config-location=/bin/kube-conformity/config.yaml
+ENTRYPOINT ["/etc/kube-conformity/kube-conformity"]
