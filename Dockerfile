@@ -19,4 +19,4 @@ COPY --from=builder /bin/kube-conformity /etc/kube-conformity/kube-conformity
 WORKDIR /etc/kube-conformity
 
 USER kube-conformity
-ENTRYPOINT ["kube-conformity"]
+ENTRYPOINT ["./kube-conformity"]
