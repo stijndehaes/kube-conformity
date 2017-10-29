@@ -5,6 +5,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stijndehaes/kube-conformity/rules"
+	"os"
 )
 
 func TestEmailConfig_UnmarshalYAML_FailMissingHost(t *testing.T) {
@@ -51,6 +52,23 @@ to: test@gmail.com`
 	assert.Equal(t, "kube-conformity", config.Subject)
 	assert.Equal(t, "no-reply@kube-conformity.com", config.From)
 	assert.False(t, config.Enabled)
+}
+
+func TestEmailConfig_UnmarshalYAML_AuthPasswordEnvironment(t *testing.T) {
+	test := `
+host: 10.10.10.10
+to: test@gmail.com`
+
+	config := EmailConfig{}
+	os.Setenv("CONFORMITY_EMAIL_AUTH_PASSWORD", "secret")
+	err := yaml.Unmarshal([]byte(test), &config)
+
+
+	if err != nil {
+		assert.Fail(t, "UnMarshal should not fail")
+	}
+
+	assert.Equal(t, "secret", config.AuthPassword)
 }
 
 func TestEmailConfig_RenderTemplate(t *testing.T) {
