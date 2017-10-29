@@ -25,13 +25,15 @@ labels_filled_in_rules:
   labels:
   - app
   filter:
-    namespaces: "!kube-system"
+    exclude_namespaces: "kube-system"
 limits_filled_in_rules:
 - name: Checks if limits are filled in everywhere except in kube-system
   filter:
-    namespaces: "!kube-system"
+    exclude_namespaces: "kube-system"
 requests_filled_in_rules:
 - name: Checks if requests are filled in everywhere
+  filter:
+    exclude_namespaces: "kube-system"
 ```
 
 # Email config
