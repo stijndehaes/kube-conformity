@@ -44,11 +44,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	config, err := ConstructConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	kubeConformity := kubeconformity.New(
 		client,
 		log.StandardLogger(),
-		ConstructConfig(),
+		config,
 	)
 
 	for {
@@ -62,18 +66,18 @@ func main() {
 	}
 }
 
-func ConstructConfig() config.Config {
+func ConstructConfig() (config.Config, error) {
 	kubeConfig := config.Config{}
 
 	yamlFile, err := ioutil.ReadFile(configLocation)
 	if err != nil {
-		log.Fatalf("yamlFile.Get err   #%v ", err)
+		return kubeConfig, err
 	}
 	err = yaml.Unmarshal(yamlFile, &kubeConfig)
 	if err != nil {
-		log.Fatalf("Unmarshal: %v", err)
+		return kubeConfig, err
 	}
-	return kubeConfig
+	return kubeConfig, nil
 }
 
 func newClient() (*kubernetes.Clientset, error) {
