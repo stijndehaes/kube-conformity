@@ -38,6 +38,7 @@ func (k *KubeConformity) LogNonConformingPods() error {
 		}
 	}
 	if k.KubeConformityConfig.EmailConfig.Enabled {
+		k.Logger.Println("Sending mail with conformity results")
 		return k.KubeConformityConfig.EmailConfig.SendMail(conformityResults)
 	}
 	return nil
