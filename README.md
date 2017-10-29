@@ -25,17 +25,26 @@ labels_filled_in_rules:
   labels:
   - app
   filter:
-    namespaces: "!kube-system"
+    exclude_namespaces:
+    - kube-system
 limits_filled_in_rules:
 - name: Checks if limits are filled in everywhere except in kube-system
   filter:
-    namespaces: "!kube-system"
+    exclude_namespaces:
+    - kube-system
 requests_filled_in_rules:
 - name: Checks if requests are filled in everywhere
+  filter:
+    exclude_namespaces:
+    - kube-system
 ```
 
 # Email config
-Default the non-conforming pods get logged to stdout. But it is also possible to have these reports send through email. For example:
+Default the non-conforming pods get logged to stdout.
+But it is also possible to have these reports send through email.
+The auth_password variable can also be set by and environment variable called: `CONFORMITY_EMAIL_AUTH_PASSWORD`.
+
+An example of a full email config would be.
 
 ```yaml
 interval: 1h
