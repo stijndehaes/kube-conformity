@@ -2,124 +2,76 @@ package filters
 
 import (
 	"k8s.io/client-go/pkg/api/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"log"
-	"k8s.io/apimachinery/pkg/selection"
-	"fmt"
-	"github.com/emicklei/go-restful"
 )
 
 type Filter struct {
-	NamespacesString string `yaml:"namespaces"`
+	IncludeNamespaces  []string          `yaml:"include_namespaces"`
+	ExcludeNamespaces  []string          `yaml:"exclude_namespaces"`
+	ExcludeAnnotations map[string]string `yaml:"exclude_annotations"`
 }
 
 func (f Filter) FilterPods(pods []v1.Pod) []v1.Pod {
-	return f.filterOnNamespaces(pods)
+	filteredPods := f.FilterIncludeNamespace(pods)
+	filteredPods = f.FilterExcludeNamespace(filteredPods)
+	filteredPods = f.FilterExcludeAnnotations(filteredPods)
+	return filteredPods
 }
 
-func (f Filter) filterOnAnnotations(pods []v1.Pod) []v1.Pod {
-	reqIncl, reqExcl, _ := ParseFilterString(f.NamespacesString)
-
-	if len(reqIncl) == 0 && len(reqExcl) == 0 {
+func (f Filter) FilterIncludeNamespace(pods []v1.Pod) []v1.Pod {
+	if len(f.IncludeNamespaces) == 0 {
 		return pods
 	}
 
-	filteredList:= []v1.Pod{}
+	filteredPods := []v1.Pod{}
 
 	for _, pod := range pods {
-		// if there aren't any including requirements, we're in by default
-		included := len(reqIncl) == 0
-
-		// convert the pod's namespace to an equivalent label selector
-		selector := labels.Set{pod.Namespace: ""}
-
-		// include pod if one including requirement matches
-		for _, req := range reqIncl {
-			if req.Matches(selector) {
-				included = true
-				break
-			}
+		include := false
+		for _, namespace := range f.IncludeNamespaces {
+			include = include || pod.Namespace == namespace
 		}
-
-		// exclude pod if it is filtered out by at least one excluding requirement
-		for _, req := range reqExcl {
-			if !req.Matches(selector) {
-				included = false
-				break
-			}
-		}
-
-		if included {
-			filteredList = append(filteredList, pod)
+		if include {
+			filteredPods = append(filteredPods, pod)
 		}
 	}
-
-	return filteredList
+	return filteredPods
 }
 
-func ParseFilterString(string string) ([]labels.Requirement, []labels.Requirement, error) {
-	selectors, err := labels.Parse(string)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if selectors.Empty() {
-		return []labels.Requirement{}, []labels.Requirement{}, nil
-	}
-
-	// split requirements into including and excluding groups
-	reqs, _ := selectors.Requirements()
-	reqIncl := []labels.Requirement{}
-	reqExcl := []labels.Requirement{}
-
-	for _, req := range reqs {
-		switch req.Operator() {
-		case selection.Exists:
-			reqIncl = append(reqIncl, req)
-		case selection.DoesNotExist:
-			reqExcl = append(reqExcl, req)
-		default:
-			return []labels.Requirement{}, []labels.Requirement{}, error(fmt.Errorf("unsupported operator: %s", req.Operator()))
-		}
-	}
-	return reqIncl, reqExcl, nil
-}
-
-func (f Filter) filterOnNamespaces(pods []v1.Pod) []v1.Pod {
-	reqIncl, reqExcl, _ := ParseFilterString(f.NamespacesString)
-
-	if len(reqIncl) == 0 && len(reqExcl) == 0 {
+func (f Filter) FilterExcludeNamespace(pods []v1.Pod) []v1.Pod {
+	if len(f.ExcludeNamespaces) == 0 {
 		return pods
 	}
 
-	filteredList:= []v1.Pod{}
+	filteredPods := []v1.Pod{}
 
 	for _, pod := range pods {
-		// if there aren't any including requirements, we're in by default
-		included := len(reqIncl) == 0
-
-		// convert the pod's namespace to an equivalent label selector
-		selector := labels.Set{pod.Namespace: ""}
-
-		// include pod if one including requirement matches
-		for _, req := range reqIncl {
-			if req.Matches(selector) {
-				included = true
-				break
-			}
+		exclude := false
+		for _, namespace := range f.ExcludeNamespaces {
+			exclude = exclude || pod.Namespace == namespace
 		}
-
-		// exclude pod if it is filtered out by at least one excluding requirement
-		for _, req := range reqExcl {
-			if !req.Matches(selector) {
-				included = false
-				break
-			}
-		}
-
-		if included {
-			filteredList = append(filteredList, pod)
+		if !exclude {
+			filteredPods = append(filteredPods, pod)
 		}
 	}
+	return filteredPods
+}
 
-	return filteredList
+func (f Filter) FilterExcludeAnnotations(pods []v1.Pod) []v1.Pod {
+	if len(f.ExcludeAnnotations) == 0 {
+		return pods
+	}
+
+	filteredPods := []v1.Pod{}
+
+	for _, pod := range pods {
+		exclude := false
+		for annotationsKey, annotationValue := range f.ExcludeAnnotations {
+			if podAnnotationValue, exists := pod.Annotations[annotationsKey]; exists {
+				exclude = exclude || podAnnotationValue == annotationValue
+			}
+		}
+		if !exclude {
+			filteredPods = append(filteredPods, pod)
+		}
+	}
+	return filteredPods
 }
