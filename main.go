@@ -19,31 +19,29 @@ import (
 
 var (
 	master         string
-	kubeconfig     string
+	kubeConfig     string
 	debug          bool
 	version        string
 	configLocation string
+	jsonLogging    bool
 )
 
 func init() {
 	kingpin.Flag("master", "The address of the Kubernetes cluster to target").StringVar(&master)
-	kingpin.Flag("kubeconfig", "Path to a kubeconfig file").StringVar(&kubeconfig)
+	kingpin.Flag("kube-config", "Path to a kubeConfig file").StringVar(&kubeConfig)
 	kingpin.Flag("debug", "Enable debug logging.").BoolVar(&debug)
+	kingpin.Flag("json-logging", "Enable json logging.").BoolVar(&jsonLogging)
 	kingpin.Flag("config-location", "The location of the config.yaml").Default("config.yaml").StringVar(&configLocation)
 }
 
 func main() {
 	kingpin.Version(version)
 	kingpin.Parse()
-
-	if debug {
-		log.SetLevel(log.DebugLevel)
-	}
-
 	client, err := newClient()
 	if err != nil {
 		log.Fatal(err)
 	}
+	ConfigureLogging()
 
 	kubeConformity := kubeconformity.New(
 		client,
@@ -62,38 +60,46 @@ func main() {
 	}
 }
 
-func ConstructConfig() config.Config {
-	kubeConfig := config.Config{}
+func ConfigureLogging() {
+	if jsonLogging {
+		log.SetFormatter(&log.JSONFormatter{})
+		log.Info("Json logging enabled")
+	} else {
+		log.SetFormatter(&log.TextFormatter{})
+	}
+	if debug {
+		log.Info("Debug level enabled")
+		log.SetLevel(log.DebugLevel)
+	} else {
+		log.SetLevel(log.InfoLevel)
+	}
+}
 
+func ConstructConfig() config.Config {
+	kubeConformityConfig := config.Config{}
 	yamlFile, err := ioutil.ReadFile(configLocation)
 	if err != nil {
 		log.Fatalf("yamlFile.Get err   #%v ", err)
 	}
-	err = yaml.Unmarshal(yamlFile, &kubeConfig)
+	err = yaml.Unmarshal(yamlFile, &kubeConformityConfig)
 	if err != nil {
 		log.Fatalf("Unmarshal: %v", err)
 	}
-	return kubeConfig
+	return kubeConformityConfig
 }
 
 func newClient() (*kubernetes.Clientset, error) {
-	if kubeconfig == "" {
-		if _, err := os.Stat(clientcmd.RecommendedHomeFile); err == nil {
-			kubeconfig = clientcmd.RecommendedHomeFile
-		}
+	if _, err := os.Stat(clientcmd.RecommendedHomeFile); kubeConfig == "" && err == nil {
+		kubeConfig = clientcmd.RecommendedHomeFile
 	}
-
-	kconfig, err := clientcmd.BuildConfigFromFlags(master, kubeconfig)
+	kConfig, err := clientcmd.BuildConfigFromFlags(master, kubeConfig)
 	if err != nil {
 		return nil, err
 	}
-
-	log.Infof("Targeting cluster at %s", kconfig.Host)
-
-	client, err := kubernetes.NewForConfig(kconfig)
+	log.Infof("Targeting cluster at %s", kConfig.Host)
+	client, err := kubernetes.NewForConfig(kConfig)
 	if err != nil {
 		return nil, err
 	}
-
 	return client, nil
 }
