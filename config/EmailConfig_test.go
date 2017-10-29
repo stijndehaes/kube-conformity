@@ -148,5 +148,5 @@ func TestConstructHeadersString(t *testing.T) {
 
 	string := ConstructHeadersString(headers)
 
-	assert.Equal(t, "Test1: test1\r\nTest2: test2\r\n", string)
+	assert.True(t, "Test1: test1\r\nTest2: test2\r\n" == string || "Test2: test2\r\nTest1: test1\r\n" == string)
 }

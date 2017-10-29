@@ -77,3 +77,15 @@ Not all values have to be filled in. The following table denotes if a value is r
 | auth_password |                               | false     |
 | auth_identity |                               | false     |
 | template      | mailtemplate.html             | true      |
+
+# Command line arguments
+
+Some of the setup is done through command line arguments the arguments available are:
+
+* --master=address : The address of the Kubernetes cluster to target
+* --kube-config=path : Path to a kubeConfig file, default = kube config in home directory
+* --debug : Enable debug logging.
+* --json-logging : Enable json logging.
+* --config-location=path : The location of the config.yaml, default = config.yaml
+
+When running in the cluster the kube-config file or master address should be picked up automatically.
