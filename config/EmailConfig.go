@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"strconv"
 	"encoding/base64"
+	"os"
 )
 
 var (
@@ -44,6 +45,10 @@ func (c *EmailConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	if c.Host == "" {
 		return fmt.Errorf("missing host in email config")
+	}
+	authPassword := os.Getenv("CONFORMITY_EMAIL_AUTH_PASSWORD")
+	if authPassword != "" {
+		c.AuthPassword = authPassword
 	}
 	return nil
 }
