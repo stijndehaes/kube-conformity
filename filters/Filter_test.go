@@ -16,11 +16,21 @@ func newPod(namespace, name string) v1.Pod {
 	}
 }
 
-func newPodWithAnnotations(namespace, name string, annotations map[string]string ) v1.Pod {
+func newPodWithLabels(namespace, name string, labels map[string]string) v1.Pod {
 	return v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
+			Labels:    labels,
+		},
+	}
+}
+
+func newPodWithAnnotations(namespace, name string, annotations map[string]string) v1.Pod {
+	return v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace:   namespace,
+			Name:        name,
 			Annotations: annotations,
 		},
 	}
@@ -86,13 +96,13 @@ func TestFilter_FilterExcludeNamespace_Empty(t *testing.T) {
 
 func TestFilter_FilterExcludeAnnotations(t *testing.T) {
 	filter := Filter{
-		ExcludeAnnotations: map[string]string{ "testkey1": "testvalue1" },
+		ExcludeAnnotations: map[string]string{"testkey1": "testvalue1"},
 	}
 
 	pods := []v1.Pod{
-		newPodWithAnnotations("default", "name1", map[string]string{ "testkey1": "testvalue1" }),
-		newPodWithAnnotations("default", "name2", map[string]string{ "testkey1": "testvalue2" }),
-		newPodWithAnnotations("default", "name3", map[string]string{ "testkey2": "testvalue1" }),
+		newPodWithAnnotations("default", "name1", map[string]string{"testkey1": "testvalue1"}),
+		newPodWithAnnotations("default", "name2", map[string]string{"testkey1": "testvalue2"}),
+		newPodWithAnnotations("default", "name3", map[string]string{"testkey2": "testvalue1"}),
 	}
 
 	filteredPods := filter.FilterExcludeAnnotations(pods)
@@ -109,10 +119,42 @@ func TestFilter_FilterExcludeAnnotations_Empty(t *testing.T) {
 	}
 
 	pods := []v1.Pod{
-		newPodWithAnnotations("default", "name1", map[string]string{ "testkey1": "testvalue1" }),
+		newPodWithAnnotations("default", "name1", map[string]string{"testkey1": "testvalue1"}),
 	}
 
 	filteredPods := filter.FilterExcludeAnnotations(pods)
+	assert.Len(t, filteredPods, 1)
+}
+
+func TestFilter_FilterExcludeLabels(t *testing.T) {
+	filter := Filter{
+		ExcludeLabels: map[string]string{"testkey1": "testvalue1"},
+	}
+
+	pods := []v1.Pod{
+		newPodWithLabels("default", "name1", map[string]string{"testkey1": "testvalue1"}),
+		newPodWithLabels("default", "name2", map[string]string{"testkey1": "testvalue2"}),
+		newPodWithLabels("default", "name3", map[string]string{"testkey2": "testvalue1"}),
+	}
+
+	filteredPods := filter.FilterExcludeLabels(pods)
+	assert.Len(t, filteredPods, 2)
+	assert.Equal(t, "name2", filteredPods[0].Name)
+	assert.Equal(t, "default", filteredPods[0].Namespace)
+	assert.Equal(t, "name3", filteredPods[1].Name)
+	assert.Equal(t, "default", filteredPods[1].Namespace)
+}
+
+func TestFilter_FilterExcludeLabels_Empty(t *testing.T) {
+	filter := Filter{
+		ExcludeLabels: map[string]string{},
+	}
+
+	pods := []v1.Pod{
+		newPodWithLabels("default", "name1", map[string]string{"testkey1": "testvalue1"}),
+	}
+
+	filteredPods := filter.FilterExcludeLabels(pods)
 	assert.Len(t, filteredPods, 1)
 }
 

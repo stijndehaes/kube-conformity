@@ -39,6 +39,23 @@ requests_filled_in_rules:
     - kube-system
 ```
 
+# Filtering
+Each rule can be filtered on the base of four fields:
+
+```yaml
+- name: Checks if requests are filled in everywhere
+  filter:
+    include_namespaces
+    - kube-system
+    exclude_namespaces:
+    - kube-system
+    exclude_annotations:
+      annotationKey: AnnotationValue
+    exlcude_labels:
+      labelKey: labelValue
+```
+
+
 # Email config
 Default the non-conforming pods get logged to stdout.
 But it is also possible to have these reports send through email.
