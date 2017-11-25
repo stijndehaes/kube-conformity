@@ -158,6 +158,35 @@ func TestFilter_FilterExcludeLabels_Empty(t *testing.T) {
 	assert.Len(t, filteredPods, 1)
 }
 
+func TestFilter_FilterExcludeJobs_true(t *testing.T) {
+	filter := Filter{
+		ExcludeJobs: true,
+	}
+
+	pods := []v1.Pod{
+		newPodWithLabels("default", "name1", map[string]string{"job-name": "curator-212312"}),
+		newPodWithLabels("default", "name2", map[string]string{}),
+	}
+
+	filteredPods := filter.FilterExcludeJobs(pods)
+	assert.Len(t, filteredPods, 1)
+	assert.Equal(t, "name2", filteredPods[0].Name)
+}
+
+func TestFilter_FilterExcludeJobs_false(t *testing.T) {
+	filter := Filter{
+		ExcludeJobs: false,
+	}
+
+	pods := []v1.Pod{
+		newPodWithLabels("default", "name1", map[string]string{"job-name": "curator-212312"}),
+		newPodWithLabels("default", "name2", map[string]string{}),
+	}
+
+	filteredPods := filter.FilterExcludeJobs(pods)
+	assert.Len(t, filteredPods, 2)
+}
+
 func TestFilter_FilterPods(t *testing.T) {
 	filter := Filter{}
 
