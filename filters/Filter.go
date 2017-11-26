@@ -8,6 +8,7 @@ type Filter struct {
 	IncludeNamespaces  []string          `yaml:"include_namespaces"`
 	ExcludeNamespaces  []string          `yaml:"exclude_namespaces"`
 	ExcludeAnnotations map[string]string `yaml:"exclude_annotations"`
+	ExcludeJobs        bool              `yaml:"exclude_jobs"`
 	ExcludeLabels      map[string]string `yaml:"exclude_labels"`
 }
 
@@ -16,6 +17,7 @@ func (f Filter) FilterPods(pods []v1.Pod) []v1.Pod {
 	filteredPods = f.FilterExcludeNamespace(filteredPods)
 	filteredPods = f.FilterExcludeAnnotations(filteredPods)
 	filteredPods = f.FilterExcludeLabels(filteredPods)
+	filteredPods = f.FilterExcludeJobs(filteredPods)
 	return filteredPods
 }
 
@@ -93,6 +95,21 @@ func (f Filter) FilterExcludeLabels(pods []v1.Pod) []v1.Pod {
 			}
 		}
 		if !exclude {
+			filteredPods = append(filteredPods, pod)
+		}
+	}
+	return filteredPods
+}
+
+func (f Filter) FilterExcludeJobs(pods []v1.Pod) []v1.Pod {
+	if !f.ExcludeJobs {
+		return pods
+	}
+
+	filteredPods := []v1.Pod{}
+
+	for _, pod := range pods {
+		if _, exists := pod.Labels["job-name"]; !exists {
 			filteredPods = append(filteredPods, pod)
 		}
 	}

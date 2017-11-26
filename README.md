@@ -40,19 +40,28 @@ requests_filled_in_rules:
 ```
 
 # Filtering
-Each rule can be filtered on the base of four fields:
+Each rule can be filtered on the base of five fields:
+
+* include_namespaces: A list of namespaces to include, if empty defaults to all namespaces
+* exclude_namespaces: A list of namespaces to exclude, if empty defaults to none
+* exclude_annotations: A map of annotations to exclude
+* exclude_labels: A map of labels to exclude
+* exclude_jobs: Excludes pod created by a job, filters on the labelkey `job-name`
+
+An example of the yaml configuration:
 
 ```yaml
 - name: Checks if requests are filled in everywhere
   filter:
-    include_namespaces
+    include_namespaces:
     - kube-system
     exclude_namespaces:
     - kube-system
     exclude_annotations:
       annotationKey: AnnotationValue
-    exlcude_labels:
+    exclude_labels:
       labelKey: labelValue
+    exclude_jobs: true
 ```
 
 
