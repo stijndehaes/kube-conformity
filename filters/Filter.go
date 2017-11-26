@@ -8,12 +8,14 @@ type Filter struct {
 	IncludeNamespaces  []string          `yaml:"include_namespaces"`
 	ExcludeNamespaces  []string          `yaml:"exclude_namespaces"`
 	ExcludeAnnotations map[string]string `yaml:"exclude_annotations"`
+	ExcludeLabels      map[string]string `yaml:"exclude_labels"`
 }
 
 func (f Filter) FilterPods(pods []v1.Pod) []v1.Pod {
 	filteredPods := f.FilterIncludeNamespace(pods)
 	filteredPods = f.FilterExcludeNamespace(filteredPods)
 	filteredPods = f.FilterExcludeAnnotations(filteredPods)
+	filteredPods = f.FilterExcludeLabels(filteredPods)
 	return filteredPods
 }
 
@@ -67,6 +69,27 @@ func (f Filter) FilterExcludeAnnotations(pods []v1.Pod) []v1.Pod {
 		for annotationsKey, annotationValue := range f.ExcludeAnnotations {
 			if podAnnotationValue, exists := pod.Annotations[annotationsKey]; exists {
 				exclude = exclude || podAnnotationValue == annotationValue
+			}
+		}
+		if !exclude {
+			filteredPods = append(filteredPods, pod)
+		}
+	}
+	return filteredPods
+}
+
+func (f Filter) FilterExcludeLabels(pods []v1.Pod) []v1.Pod {
+	if len(f.ExcludeLabels) == 0 {
+		return pods
+	}
+
+	filteredPods := []v1.Pod{}
+
+	for _, pod := range pods {
+		exclude := false
+		for labelKey, labelValue := range f.ExcludeLabels {
+			if podLabelsValue, exists := pod.Labels[labelKey]; exists {
+				exclude = exclude || podLabelsValue == labelValue
 			}
 		}
 		if !exclude {
