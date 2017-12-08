@@ -37,7 +37,7 @@ func newPodWithAnnotations(namespace, name string, annotations map[string]string
 }
 
 func TestFilter_FilterIncludeNamespace(t *testing.T) {
-	filter := Filter{
+	filter := PodFilter{
 		IncludeNamespaces: []string{"default"},
 	}
 
@@ -53,7 +53,7 @@ func TestFilter_FilterIncludeNamespace(t *testing.T) {
 }
 
 func TestFilter_FilterIncludeNamespace_Empty(t *testing.T) {
-	filter := Filter{
+	filter := PodFilter{
 		IncludeNamespaces: []string{},
 	}
 
@@ -64,7 +64,7 @@ func TestFilter_FilterIncludeNamespace_Empty(t *testing.T) {
 }
 
 func TestFilter_FilterExcludeNamespace(t *testing.T) {
-	filter := Filter{
+	filter := PodFilter{
 		ExcludeNamespaces: []string{"kube-system"},
 	}
 
@@ -80,7 +80,7 @@ func TestFilter_FilterExcludeNamespace(t *testing.T) {
 }
 
 func TestFilter_FilterExcludeNamespace_Empty(t *testing.T) {
-	filter := Filter{
+	filter := PodFilter{
 		ExcludeNamespaces: []string{},
 	}
 
@@ -95,7 +95,7 @@ func TestFilter_FilterExcludeNamespace_Empty(t *testing.T) {
 }
 
 func TestFilter_FilterExcludeAnnotations(t *testing.T) {
-	filter := Filter{
+	filter := PodFilter{
 		ExcludeAnnotations: map[string]string{"testkey1": "testvalue1"},
 	}
 
@@ -114,7 +114,7 @@ func TestFilter_FilterExcludeAnnotations(t *testing.T) {
 }
 
 func TestFilter_FilterExcludeAnnotations_Empty(t *testing.T) {
-	filter := Filter{
+	filter := PodFilter{
 		ExcludeAnnotations: map[string]string{},
 	}
 
@@ -127,7 +127,7 @@ func TestFilter_FilterExcludeAnnotations_Empty(t *testing.T) {
 }
 
 func TestFilter_FilterExcludeLabels(t *testing.T) {
-	filter := Filter{
+	filter := PodFilter{
 		ExcludeLabels: map[string]string{"testkey1": "testvalue1"},
 	}
 
@@ -146,7 +146,7 @@ func TestFilter_FilterExcludeLabels(t *testing.T) {
 }
 
 func TestFilter_FilterExcludeLabels_Empty(t *testing.T) {
-	filter := Filter{
+	filter := PodFilter{
 		ExcludeLabels: map[string]string{},
 	}
 
@@ -159,7 +159,7 @@ func TestFilter_FilterExcludeLabels_Empty(t *testing.T) {
 }
 
 func TestFilter_FilterExcludeJobs_true(t *testing.T) {
-	filter := Filter{
+	filter := PodFilter{
 		ExcludeJobs: true,
 	}
 
@@ -174,7 +174,7 @@ func TestFilter_FilterExcludeJobs_true(t *testing.T) {
 }
 
 func TestFilter_FilterExcludeJobs_false(t *testing.T) {
-	filter := Filter{
+	filter := PodFilter{
 		ExcludeJobs: false,
 	}
 
@@ -188,7 +188,7 @@ func TestFilter_FilterExcludeJobs_false(t *testing.T) {
 }
 
 func TestFilter_FilterPods(t *testing.T) {
-	filter := Filter{}
+	filter := PodFilter{}
 
 	pods := []v1.Pod{
 		newPod("default", "name1"),

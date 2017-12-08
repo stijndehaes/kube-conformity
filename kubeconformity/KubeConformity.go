@@ -46,13 +46,13 @@ func (k *KubeConformity) LogNonConformingPods() error {
 
 // Candidates returns the list of pods that are available for termination.
 // It returns all pods matching the label selector and at least one namespace.
-func (k *KubeConformity) EvaluateRules() []rules.RuleResult {
+func (k *KubeConformity) EvaluateRules() []rules.PodRuleResult {
 	podList, err := k.Client.CoreV1().Pods(v1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
 		k.Logger.Fatal(err)
 	}
 
-	ruleResults := []rules.RuleResult{}
+	ruleResults := []rules.PodRuleResult{}
 	for _, rule := range k.KubeConformityConfig.RequestsFilledInRules {
 		result := rule.FindNonConformingPods(podList.Items)
 		ruleResults = append(ruleResults, result)

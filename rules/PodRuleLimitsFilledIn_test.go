@@ -10,7 +10,7 @@ import (
 )
 
 func TestFilterOnLimits(t *testing.T) {
-	rule := LimitsFilledInRule{}
+	rule := PodRuleLimitsFilledIn{}
 	pod1 := newPodWithLimits("default", "foo", "", "")
 	pod2 := newPodWithLimits("testing", "bar", "400m", "1.1Gi")
 	pods := []v1.Pod{
@@ -49,12 +49,12 @@ func newPodWithLimits(namespace, name, limitCpu, limitMemory string) v1.Pod {
 	}
 }
 
-func TestLimitsFilledInRule_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
+func TestPodRuleLimitsFilledIn_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
 	string := `
 filter:
   namespaces: test`
 
-	rule := LimitsFilledInRule{}
+	rule := PodRuleLimitsFilledIn{}
 
 	err := yaml.Unmarshal([]byte(string), &rule)
 
@@ -63,10 +63,10 @@ filter:
 	}
 }
 
-func TestLimitsFilledInRule_UnmarshalYAML(t *testing.T) {
+func TestPodRuleLimitsFilledIn_UnmarshalYAML(t *testing.T) {
 	string := `name: limits filled in`
 
-	rule := LimitsFilledInRule{}
+	rule := PodRuleLimitsFilledIn{}
 
 	err := yaml.Unmarshal([]byte(string), &rule)
 

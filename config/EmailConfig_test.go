@@ -76,7 +76,7 @@ func TestEmailConfig_RenderTemplate(t *testing.T) {
 	eConfig.Enabled = true
 	eConfig.Template = "../mailtemplate.html"
 
-	template, err := eConfig.RenderTemplate([]rules.RuleResult{
+	template, err := eConfig.RenderTemplate([]rules.PodRuleResult{
 		{
 			Reason:   "A reason",
 			RuleName: "A rule name",
@@ -94,7 +94,7 @@ func TestEmailConfig_ConstructEmailBody(t *testing.T) {
 	eConfig.Enabled = true
 	eConfig.Template = "../mailtemplate.html"
 
-	body, err := eConfig.ConstructEmailBody([]rules.RuleResult{
+	body, err := eConfig.ConstructEmailBody([]rules.PodRuleResult{
 		{
 			Reason:   "A reason",
 			RuleName: "A rule name",
@@ -111,7 +111,7 @@ func TestEmailConfig_ConstructEmailBody_TemplateNoExist(t *testing.T) {
 	eConfig := DefaultEmailConfig
 	eConfig.Enabled = true
 	eConfig.Template = "test.html"
-	body, err := eConfig.ConstructEmailBody([]rules.RuleResult{{}})
+	body, err := eConfig.ConstructEmailBody([]rules.PodRuleResult{{}})
 	assert.NotEqual(t, nil, err, "Should fail because template does not exist")
 	assert.Equal(t, []byte{}, body)
 }

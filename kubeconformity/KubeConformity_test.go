@@ -19,11 +19,11 @@ var logger = log.New(logOutput, "", 0)
 // termination can be restricted by namespaces.
 func TestFindNonConformingPods(t *testing.T) {
 	kubeConfig := config.Config{
-		LabelsFilledInRules: []rules.LabelsFilledInRule{
+		LabelsFilledInRules: []rules.PodRuleLabelsFilledIn{
 			{Labels: []string{"app"}},
 		},
-		LimitsFilledInRules:   []rules.LimitsFilledInRule{{}},
-		RequestsFilledInRules: []rules.RequestsFilledInRule{{}},
+		LimitsFilledInRules:   []rules.PodRuleLimitsFilledIn{{}},
+		RequestsFilledInRules: []rules.PodRuleRequestsFilledIn{{}},
 	}
 	pods := []v1.Pod{
 		newPodWithLabels("default", "foo", []string{}),
@@ -36,7 +36,7 @@ func TestFindNonConformingPods(t *testing.T) {
 
 func TestLogNonConformingPodsResources(t *testing.T) {
 	kubeConfig := config.Config{
-		LabelsFilledInRules: []rules.LabelsFilledInRule{
+		LabelsFilledInRules: []rules.PodRuleLabelsFilledIn{
 			{Labels: []string{"app"}},
 		},
 	}

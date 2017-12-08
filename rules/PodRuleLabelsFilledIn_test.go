@@ -9,7 +9,7 @@ import (
 )
 
 func TestFilterOnLabelsFilledIn(t *testing.T) {
-	rule := LabelsFilledInRule{
+	rule := PodRuleLabelsFilledIn{
 		Name:   "app label",
 		Labels: []string{"app"},
 	}
@@ -25,8 +25,8 @@ func TestFilterOnLabelsFilledIn(t *testing.T) {
 	assert.NotEqual(t, pod2.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 }
 
-func TestFilterOnLabelsFilledInMultipleLables(t *testing.T) {
-	rule := LabelsFilledInRule{
+func TestFilterOnLabelsFilledInMultipleLabels(t *testing.T) {
+	rule := PodRuleLabelsFilledIn{
 		Name:   "app label",
 		Labels: []string{"app"},
 	}
@@ -43,7 +43,7 @@ func TestFilterOnLabelsFilledInMultipleLables(t *testing.T) {
 }
 
 func TestFilterOnLabelsFilledInAllLabelsMatch(t *testing.T) {
-	rule := LabelsFilledInRule{
+	rule := PodRuleLabelsFilledIn{
 		Name:   "app label",
 		Labels: []string{"app", "environment"},
 	}
@@ -60,7 +60,7 @@ func TestFilterOnLabelsFilledInAllLabelsMatch(t *testing.T) {
 }
 
 func TestFilterOnLabelsFilledInOnlyOneLabelMatch(t *testing.T) {
-	rule := LabelsFilledInRule{
+	rule := PodRuleLabelsFilledIn{
 		Name:   "app label",
 		Labels: []string{"app", "environment"},
 	}
@@ -76,11 +76,11 @@ func TestFilterOnLabelsFilledInOnlyOneLabelMatch(t *testing.T) {
 	assert.NotEqual(t, pod2.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 }
 
-func TestLabelsFilledInRule_UnmarshalYAML_LabelsNotFilledIn(t *testing.T) {
+func TestPodRuleLabelsFilledIn_UnmarshalYAML_LabelsNotFilledIn(t *testing.T) {
 	string := `
 name: app label filled in`
 
-	rule := LabelsFilledInRule{}
+	rule := PodRuleLabelsFilledIn{}
 
 	err := yaml.Unmarshal([]byte(string), &rule)
 
@@ -89,12 +89,12 @@ name: app label filled in`
 	}
 }
 
-func TestLabelsFilledInRule_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
+func TestPodRuleLabelsFilledIn_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
 	string := `
 labels:
 - app`
 
-	rule := LabelsFilledInRule{}
+	rule := PodRuleLabelsFilledIn{}
 
 	err := yaml.Unmarshal([]byte(string), &rule)
 
@@ -103,13 +103,13 @@ labels:
 	}
 }
 
-func TestLabelsFilledInRule_UnmarshalYAML(t *testing.T) {
+func TestPodRuleLabelsFilledIn_UnmarshalYAML(t *testing.T) {
 	string := `
 name: app label filled in
 labels:
 - app`
 
-	rule := LabelsFilledInRule{}
+	rule := PodRuleLabelsFilledIn{}
 
 	err := yaml.Unmarshal([]byte(string), &rule)
 

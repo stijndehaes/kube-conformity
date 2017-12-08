@@ -6,13 +6,13 @@ import (
 	"github.com/stijndehaes/kube-conformity/filters"
 )
 
-type LabelsFilledInRule struct {
-	Name   string         `yaml:"name"`
-	Labels []string       `yaml:"labels"`
-	Filter filters.Filter `yaml:"filter"`
+type PodRuleLabelsFilledIn struct {
+	Name   string            `yaml:"name"`
+	Labels []string          `yaml:"labels"`
+	Filter filters.PodFilter `yaml:"filter"`
 }
 
-func (r LabelsFilledInRule) FindNonConformingPods(pods []v1.Pod) RuleResult {
+func (r PodRuleLabelsFilledIn) FindNonConformingPods(pods []v1.Pod) PodRuleResult {
 	namespaceFiltered := r.Filter.FilterPods(pods)
 	filteredList := []v1.Pod{}
 	for _, pod := range namespaceFiltered {
@@ -30,23 +30,23 @@ func (r LabelsFilledInRule) FindNonConformingPods(pods []v1.Pod) RuleResult {
 		}
 	}
 
-	return RuleResult{
+	return PodRuleResult{
 		Pods:     filteredList,
 		Reason:   fmt.Sprintf("Labels: %v are not filled in", r.Labels),
 		RuleName: r.Name,
 	}
 }
 
-func (r *LabelsFilledInRule) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type plain LabelsFilledInRule
+func (r *PodRuleLabelsFilledIn) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type plain PodRuleLabelsFilledIn
 	if err := unmarshal((*plain)(r)); err != nil {
 		return err
 	}
 	if len(r.Labels) == 0 {
-		return fmt.Errorf("Missing labels for LabelsFilledInRule")
+		return fmt.Errorf("Missing labels for PodRuleLabelsFilledIn")
 	}
 	if r.Name == "" {
-		return fmt.Errorf("Missing name for LabelsFilledInRule")
+		return fmt.Errorf("Missing name for PodRuleLabelsFilledIn")
 	}
 	return nil
 }

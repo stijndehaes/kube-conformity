@@ -53,9 +53,9 @@ func (c *EmailConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-func (e EmailConfig) RenderTemplate(results []rules.RuleResult) (string, error) {
+func (e EmailConfig) RenderTemplate(results []rules.PodRuleResult) (string, error) {
 	templateData := struct {
-		RuleResults []rules.RuleResult
+		RuleResults []rules.PodRuleResult
 	}{
 		RuleResults: results,
 	}
@@ -89,7 +89,7 @@ func ConstructHeadersString(headers map[string]string) string {
 	return message
 }
 
-func (e EmailConfig) ConstructEmailBody(results []rules.RuleResult) ([]byte, error) {
+func (e EmailConfig) ConstructEmailBody(results []rules.PodRuleResult) ([]byte, error) {
 	headers := ConstructHeadersString(e.GetMailHeaders())
 	body, err := e.RenderTemplate(results)
 	if err != nil {
@@ -98,7 +98,7 @@ func (e EmailConfig) ConstructEmailBody(results []rules.RuleResult) ([]byte, err
 	return []byte(headers + "\n" + base64.StdEncoding.EncodeToString([]byte(body))), nil
 }
 
-func (e EmailConfig) SendMail(results []rules.RuleResult) error {
+func (e EmailConfig) SendMail(results []rules.PodRuleResult) error {
 	msg, err := e.ConstructEmailBody(results)
 	if err != nil {
 		return err

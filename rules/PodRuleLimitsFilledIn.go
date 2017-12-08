@@ -6,12 +6,12 @@ import (
 	"fmt"
 )
 
-type LimitsFilledInRule struct {
-	Name   string         `yaml:"name"`
-	Filter filters.Filter `yaml:"filter"`
+type PodRuleLimitsFilledIn struct {
+	Name   string            `yaml:"name"`
+	Filter filters.PodFilter `yaml:"filter"`
 }
 
-func (r LimitsFilledInRule) FindNonConformingPods(pods []v1.Pod) RuleResult {
+func (r PodRuleLimitsFilledIn) FindNonConformingPods(pods []v1.Pod) PodRuleResult {
 	namespaceFiltered := r.Filter.FilterPods(pods)
 	filteredList := []v1.Pod{}
 	for _, pod := range namespaceFiltered {
@@ -27,20 +27,20 @@ func (r LimitsFilledInRule) FindNonConformingPods(pods []v1.Pod) RuleResult {
 		}
 	}
 
-	return RuleResult{
+	return PodRuleResult{
 		Pods:     filteredList,
 		Reason:   "Limits are not filled in",
 		RuleName: r.Name,
 	}
 }
 
-func (r *LimitsFilledInRule) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type plain LimitsFilledInRule
+func (r *PodRuleLimitsFilledIn) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type plain PodRuleLimitsFilledIn
 	if err := unmarshal((*plain)(r)); err != nil {
 		return err
 	}
 	if r.Name == "" {
-		return fmt.Errorf("Missing name for LimitsFilledInRule")
+		return fmt.Errorf("Missing name for PodRuleLimitsFilledIn")
 	}
 	return nil
 }

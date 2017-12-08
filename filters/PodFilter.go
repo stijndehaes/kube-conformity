@@ -4,7 +4,7 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 )
 
-type Filter struct {
+type PodFilter struct {
 	IncludeNamespaces  []string          `yaml:"include_namespaces"`
 	ExcludeNamespaces  []string          `yaml:"exclude_namespaces"`
 	ExcludeAnnotations map[string]string `yaml:"exclude_annotations"`
@@ -12,7 +12,7 @@ type Filter struct {
 	ExcludeLabels      map[string]string `yaml:"exclude_labels"`
 }
 
-func (f Filter) FilterPods(pods []v1.Pod) []v1.Pod {
+func (f PodFilter) FilterPods(pods []v1.Pod) []v1.Pod {
 	filteredPods := f.FilterIncludeNamespace(pods)
 	filteredPods = f.FilterExcludeNamespace(filteredPods)
 	filteredPods = f.FilterExcludeAnnotations(filteredPods)
@@ -21,7 +21,7 @@ func (f Filter) FilterPods(pods []v1.Pod) []v1.Pod {
 	return filteredPods
 }
 
-func (f Filter) FilterIncludeNamespace(pods []v1.Pod) []v1.Pod {
+func (f PodFilter) FilterIncludeNamespace(pods []v1.Pod) []v1.Pod {
 	if len(f.IncludeNamespaces) == 0 {
 		return pods
 	}
@@ -40,7 +40,7 @@ func (f Filter) FilterIncludeNamespace(pods []v1.Pod) []v1.Pod {
 	return filteredPods
 }
 
-func (f Filter) FilterExcludeNamespace(pods []v1.Pod) []v1.Pod {
+func (f PodFilter) FilterExcludeNamespace(pods []v1.Pod) []v1.Pod {
 	if len(f.ExcludeNamespaces) == 0 {
 		return pods
 	}
@@ -59,7 +59,7 @@ func (f Filter) FilterExcludeNamespace(pods []v1.Pod) []v1.Pod {
 	return filteredPods
 }
 
-func (f Filter) FilterExcludeAnnotations(pods []v1.Pod) []v1.Pod {
+func (f PodFilter) FilterExcludeAnnotations(pods []v1.Pod) []v1.Pod {
 	if len(f.ExcludeAnnotations) == 0 {
 		return pods
 	}
@@ -80,7 +80,7 @@ func (f Filter) FilterExcludeAnnotations(pods []v1.Pod) []v1.Pod {
 	return filteredPods
 }
 
-func (f Filter) FilterExcludeLabels(pods []v1.Pod) []v1.Pod {
+func (f PodFilter) FilterExcludeLabels(pods []v1.Pod) []v1.Pod {
 	if len(f.ExcludeLabels) == 0 {
 		return pods
 	}
@@ -101,7 +101,7 @@ func (f Filter) FilterExcludeLabels(pods []v1.Pod) []v1.Pod {
 	return filteredPods
 }
 
-func (f Filter) FilterExcludeJobs(pods []v1.Pod) []v1.Pod {
+func (f PodFilter) FilterExcludeJobs(pods []v1.Pod) []v1.Pod {
 	if !f.ExcludeJobs {
 		return pods
 	}
