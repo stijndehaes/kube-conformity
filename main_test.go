@@ -10,9 +10,9 @@ func TestConstructConfig(t *testing.T) {
 	configLocation = "config.yaml"
 	config, err := ConstructConfig()
 	assert.Nil(t, err)
-	assert.Len(t, config.LabelsFilledInRules, 1)
-	assert.Len(t, config.LimitsFilledInRules, 1)
-	assert.Len(t, config.RequestsFilledInRules, 1)
+	assert.Len(t, config.PodRulesLabelsFilledIn, 1)
+	assert.Len(t, config.PodRulesLimitsFilledIn, 1)
+	assert.Len(t, config.PodRulesRequestsFilledIn, 1)
 }
 
 func TestConfigureLogging(t *testing.T) {

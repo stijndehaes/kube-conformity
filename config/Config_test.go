@@ -46,7 +46,7 @@ labels_filled_in_rules:
 	config := Config{}
 
 	yaml.Unmarshal([]byte(test), &config)
-	assert.Len(t, config.LabelsFilledInRules, 1)
+	assert.Len(t, config.PodRulesLabelsFilledIn, 1)
 }
 
 func TestKubeConformityConfig_UnmarshalYAML_Limits(t *testing.T) {
@@ -59,7 +59,7 @@ limits_filled_in_rules:
 	config := Config{}
 
 	yaml.Unmarshal([]byte(test), &config)
-	assert.Len(t, config.LimitsFilledInRules, 1)
+	assert.Len(t, config.PodRulesLimitsFilledIn, 1)
 }
 
 func TestKubeConformityConfig_UnmarshalYAML_Requests(t *testing.T) {
@@ -71,7 +71,7 @@ requests_filled_in_rules:
 	config := Config{}
 
 	yaml.Unmarshal([]byte(test), &config)
-	assert.Len(t, config.RequestsFilledInRules, 1)
+	assert.Len(t, config.PodRulesRequestsFilledIn, 1)
 }
 
 func TestKubeConformityConfig_UnmarshalYAML_Error(t *testing.T) {

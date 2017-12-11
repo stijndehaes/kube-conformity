@@ -53,11 +53,13 @@ func (c *EmailConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-func (e EmailConfig) RenderTemplate(results []rules.PodRuleResult) (string, error) {
+func (e EmailConfig) RenderTemplate(podRuleResults []rules.PodRuleResult, deploymentResults []rules.DeploymentRuleResult) (string, error) {
 	templateData := struct {
-		RuleResults []rules.PodRuleResult
+		PodRuleResults []rules.PodRuleResult
+		DeploymentRuleResults []rules.DeploymentRuleResult
 	}{
-		RuleResults: results,
+		PodRuleResults: podRuleResults,
+		DeploymentRuleResults: deploymentResults,
 	}
 	t, err := template.ParseFiles(e.Template)
 	if err != nil {
@@ -89,17 +91,17 @@ func ConstructHeadersString(headers map[string]string) string {
 	return message
 }
 
-func (e EmailConfig) ConstructEmailBody(results []rules.PodRuleResult) ([]byte, error) {
+func (e EmailConfig) ConstructEmailBody(podRuleResults []rules.PodRuleResult, deploymentResults []rules.DeploymentRuleResult) ([]byte, error) {
 	headers := ConstructHeadersString(e.GetMailHeaders())
-	body, err := e.RenderTemplate(results)
+	body, err := e.RenderTemplate(podRuleResults, deploymentResults)
 	if err != nil {
 		return []byte{}, err
 	}
 	return []byte(headers + "\n" + base64.StdEncoding.EncodeToString([]byte(body))), nil
 }
 
-func (e EmailConfig) SendMail(results []rules.PodRuleResult) error {
-	msg, err := e.ConstructEmailBody(results)
+func (e EmailConfig) SendMail(podRuleResults []rules.PodRuleResult, deploymentRuleResults []rules.DeploymentRuleResult) error {
+	msg, err := e.ConstructEmailBody(podRuleResults, deploymentRuleResults)
 	if err != nil {
 		return err
 	}

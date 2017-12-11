@@ -6,7 +6,7 @@
 
 <body>
 
-{{ range .RuleResults }}
+{{ range .PodRuleResults }}
 
 <p>Rule name: {{ .RuleName }}</p>
 <p>Rule reason: {{ .Reason }}</p>
@@ -14,6 +14,17 @@
     {{ range .Pods }}
     <li>name: {{ .Name }}, namespace: {{ .Namespace }}, uid: {{ .UID }}</li>
     {{ end }}
+</ul>
+{{ end }}
+
+{{ range .DeploymentRuleResults }}
+
+<p>Rule name: {{ .RuleName }}</p>
+<p>Rule reason: {{ .Reason }}</p>
+<ul>
+{{ range .Deployments }}
+    <li>name: {{ .Name }}, namespace: {{ .Namespace }}</li>
+{{ end }}
 </ul>
 {{ end }}
 

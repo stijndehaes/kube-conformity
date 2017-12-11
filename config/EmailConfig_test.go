@@ -63,7 +63,6 @@ to: test@gmail.com`
 	os.Setenv("CONFORMITY_EMAIL_AUTH_PASSWORD", "secret")
 	err := yaml.Unmarshal([]byte(test), &config)
 
-
 	if err != nil {
 		assert.Fail(t, "UnMarshal should not fail")
 	}
@@ -71,17 +70,26 @@ to: test@gmail.com`
 	assert.Equal(t, "secret", config.AuthPassword)
 }
 
+var podRuleResults = []rules.PodRuleResult{
+	{
+		Reason:   "A reason",
+		RuleName: "A rule name",
+	},
+}
+
+var deploymentRuleResults = []rules.DeploymentRuleResult{
+{
+Reason:   "A reason",
+RuleName: "A rule name",
+},
+}
+
 func TestEmailConfig_RenderTemplate(t *testing.T) {
 	eConfig := DefaultEmailConfig
 	eConfig.Enabled = true
 	eConfig.Template = "../mailtemplate.html"
 
-	template, err := eConfig.RenderTemplate([]rules.PodRuleResult{
-		{
-			Reason:   "A reason",
-			RuleName: "A rule name",
-		},
-	})
+	template, err := eConfig.RenderTemplate(podRuleResults, deploymentRuleResults)
 
 	if err != nil {
 		assert.Fail(t, "Template should render correctly")
@@ -94,12 +102,7 @@ func TestEmailConfig_ConstructEmailBody(t *testing.T) {
 	eConfig.Enabled = true
 	eConfig.Template = "../mailtemplate.html"
 
-	body, err := eConfig.ConstructEmailBody([]rules.PodRuleResult{
-		{
-			Reason:   "A reason",
-			RuleName: "A rule name",
-		},
-	})
+	body, err := eConfig.ConstructEmailBody(podRuleResults, deploymentRuleResults)
 
 	if err != nil {
 		assert.Fail(t, "Body should render correctly")
@@ -111,7 +114,7 @@ func TestEmailConfig_ConstructEmailBody_TemplateNoExist(t *testing.T) {
 	eConfig := DefaultEmailConfig
 	eConfig.Enabled = true
 	eConfig.Template = "test.html"
-	body, err := eConfig.ConstructEmailBody([]rules.PodRuleResult{{}})
+	body, err := eConfig.ConstructEmailBody(nil, nil)
 	assert.NotEqual(t, nil, err, "Should fail because template does not exist")
 	assert.Equal(t, []byte{}, body)
 }

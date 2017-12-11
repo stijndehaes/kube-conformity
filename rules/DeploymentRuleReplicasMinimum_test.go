@@ -14,7 +14,7 @@ func TestDeploymentRuleReplicas_FindNonConformingDeployment(t *testing.T) {
 	deployment2 := newDeploymentWithReplicas("default", "two", int32(2))
 	deployments := []v1beta1.Deployment{deployment1, deployment2}
 
-	rule := DeploymentRuleReplicas{
+	rule := DeploymentRuleReplicasMinimum{
 		MinimumReplicas: 2,
 	}
 
@@ -28,7 +28,7 @@ func TestDeploymentRuleReplicas_UnmarshalYAML(t *testing.T) {
 name: minimum replicas 2
 minimum_replicas: 2`
 
-	rule := DeploymentRuleReplicas{}
+	rule := DeploymentRuleReplicasMinimum{}
 
 	err := yaml.Unmarshal([]byte(string), &rule)
 
@@ -42,7 +42,7 @@ func TestDeploymentRuleReplicas_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
 	string := `
 minimum_replicas: 2`
 
-	rule := DeploymentRuleReplicas{}
+	rule := DeploymentRuleReplicasMinimum{}
 
 	err := yaml.Unmarshal([]byte(string), &rule)
 
@@ -55,7 +55,7 @@ func TestDeploymentRuleReplicas_UnmarshalYAML_MinimumReplicasNotFilledIn(t *test
 	string := `
 name: minimum replicas 2`
 
-	rule := DeploymentRuleReplicas{}
+	rule := DeploymentRuleReplicasMinimum{}
 
 	err := yaml.Unmarshal([]byte(string), &rule)
 

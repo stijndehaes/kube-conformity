@@ -54,7 +54,7 @@ func main() {
 	)
 
 	for {
-		err := kubeConformity.LogNonConformingPods()
+		err := kubeConformity.LogNonConforming()
 		if err != nil {
 			log.Fatal(err)
 		}

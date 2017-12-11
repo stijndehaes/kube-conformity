@@ -5,12 +5,12 @@ import (
 	"k8s.io/client-go/pkg/apis/apps/v1beta1"
 )
 
-type DeploymentRuleReplicas struct {
+type DeploymentRuleReplicasMinimum struct {
 	Name            string            `yaml:"name"`
 	MinimumReplicas int32             `yaml:"minimum_replicas"`
 }
 
-func (d DeploymentRuleReplicas) FindNonConformingDeployment(deployments []v1beta1.Deployment) DeploymentRuleResult {
+func (d DeploymentRuleReplicasMinimum) FindNonConformingDeployment(deployments []v1beta1.Deployment) DeploymentRuleResult {
 	filteredList := []v1beta1.Deployment{}
 	for _, deployment := range deployments {
 		if *deployment.Spec.Replicas < d.MinimumReplicas {
@@ -25,8 +25,8 @@ func (d DeploymentRuleReplicas) FindNonConformingDeployment(deployments []v1beta
 	}
 }
 
-func (r *DeploymentRuleReplicas) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type plain DeploymentRuleReplicas
+func (r *DeploymentRuleReplicasMinimum) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type plain DeploymentRuleReplicasMinimum
 	if err := unmarshal((*plain)(r)); err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (r *DeploymentRuleReplicas) UnmarshalYAML(unmarshal func(interface{}) error
 		return fmt.Errorf("Missing minimum replicas")
 	}
 	if r.Name == "" {
-		return fmt.Errorf("Missing name for PodRuleLabelsFilledIn")
+		return fmt.Errorf("Missing name for DeploymentRuleReplicasMinimum")
 	}
 	return nil
 }
