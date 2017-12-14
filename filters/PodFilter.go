@@ -26,7 +26,7 @@ func (f PodFilter) FilterIncludeNamespace(pods []v1.Pod) []v1.Pod {
 		return pods
 	}
 
-	filteredPods := []v1.Pod{}
+	var filteredPods []v1.Pod
 
 	for _, pod := range pods {
 		include := false
@@ -45,7 +45,7 @@ func (f PodFilter) FilterExcludeNamespace(pods []v1.Pod) []v1.Pod {
 		return pods
 	}
 
-	filteredPods := []v1.Pod{}
+	var filteredPods []v1.Pod
 
 	for _, pod := range pods {
 		exclude := false
@@ -64,7 +64,7 @@ func (f PodFilter) FilterExcludeAnnotations(pods []v1.Pod) []v1.Pod {
 		return pods
 	}
 
-	filteredPods := []v1.Pod{}
+	var filteredPods []v1.Pod
 
 	for _, pod := range pods {
 		exclude := false
@@ -85,7 +85,7 @@ func (f PodFilter) FilterExcludeLabels(pods []v1.Pod) []v1.Pod {
 		return pods
 	}
 
-	filteredPods := []v1.Pod{}
+	var filteredPods []v1.Pod
 
 	for _, pod := range pods {
 		exclude := false
@@ -106,7 +106,7 @@ func (f PodFilter) FilterExcludeJobs(pods []v1.Pod) []v1.Pod {
 		return pods
 	}
 
-	filteredPods := []v1.Pod{}
+	var filteredPods []v1.Pod
 
 	for _, pod := range pods {
 		if _, exists := pod.Labels["job-name"]; !exists {
