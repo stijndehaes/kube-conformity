@@ -2,17 +2,17 @@ apiVersion: v1
 data:
   config.yaml: |
     interval: 1h
-    labels_filled_in_rules:
+    pod_rules_labels_filled_in:
     - name: Check if label app is active on every pod
       labels:
       - app
       filter:
         namespaces: "!kube-system"
-    limits_filled_in_rules:
+    pod_rules_limits_filled_in:
     - name: Checks if limits are filled in everywhere
       filter:
         namespaces: "!kube-system"
-    requests_filled_in_rules:
+    pod_rules_requests_filled_in:
     - name: Checks if requests are filled in everywhere
 kind: ConfigMap
 metadata:

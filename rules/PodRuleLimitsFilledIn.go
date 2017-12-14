@@ -12,9 +12,9 @@ type PodRuleLimitsFilledIn struct {
 }
 
 func (r PodRuleLimitsFilledIn) FindNonConformingPods(pods []v1.Pod) PodRuleResult {
-	namespaceFiltered := r.Filter.FilterPods(pods)
-	filteredList := []v1.Pod{}
-	for _, pod := range namespaceFiltered {
+	filteredPods := r.Filter.FilterPods(pods)
+	var nonConformingPods []v1.Pod
+	for _, pod := range filteredPods {
 		var podNonConform = false
 
 		for _, container := range pod.Spec.Containers {
@@ -23,12 +23,12 @@ func (r PodRuleLimitsFilledIn) FindNonConformingPods(pods []v1.Pod) PodRuleResul
 		}
 
 		if podNonConform {
-			filteredList = append(filteredList, pod)
+			nonConformingPods = append(nonConformingPods, pod)
 		}
 	}
 
 	return PodRuleResult{
-		Pods:     filteredList,
+		Pods:     nonConformingPods,
 		Reason:   "Limits are not filled in",
 		RuleName: r.Name,
 	}

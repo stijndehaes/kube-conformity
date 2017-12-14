@@ -36,7 +36,7 @@ func newPodWithAnnotations(namespace, name string, annotations map[string]string
 	}
 }
 
-func TestFilter_FilterIncludeNamespace(t *testing.T) {
+func TestPodFilter_FilterIncludeNamespace(t *testing.T) {
 	filter := PodFilter{
 		IncludeNamespaces: []string{"default"},
 	}
@@ -52,7 +52,7 @@ func TestFilter_FilterIncludeNamespace(t *testing.T) {
 	assert.Equal(t, "default", filteredPods[0].Namespace)
 }
 
-func TestFilter_FilterIncludeNamespace_Empty(t *testing.T) {
+func TestPodFilter_FilterIncludeNamespace_Empty(t *testing.T) {
 	filter := PodFilter{
 		IncludeNamespaces: []string{},
 	}
@@ -63,7 +63,7 @@ func TestFilter_FilterIncludeNamespace_Empty(t *testing.T) {
 	assert.Len(t, filteredPods, 1)
 }
 
-func TestFilter_FilterExcludeNamespace(t *testing.T) {
+func TestPodFilter_FilterExcludeNamespace(t *testing.T) {
 	filter := PodFilter{
 		ExcludeNamespaces: []string{"kube-system"},
 	}
@@ -79,7 +79,7 @@ func TestFilter_FilterExcludeNamespace(t *testing.T) {
 	assert.Equal(t, "default", filteredPods[0].Namespace)
 }
 
-func TestFilter_FilterExcludeNamespace_Empty(t *testing.T) {
+func TestPodFilter_FilterExcludeNamespace_Empty(t *testing.T) {
 	filter := PodFilter{
 		ExcludeNamespaces: []string{},
 	}
@@ -94,7 +94,7 @@ func TestFilter_FilterExcludeNamespace_Empty(t *testing.T) {
 	assert.Equal(t, "default", filteredPods[0].Namespace)
 }
 
-func TestFilter_FilterExcludeAnnotations(t *testing.T) {
+func TestPodFilter_FilterExcludeAnnotations(t *testing.T) {
 	filter := PodFilter{
 		ExcludeAnnotations: map[string]string{"testkey1": "testvalue1"},
 	}
@@ -113,7 +113,7 @@ func TestFilter_FilterExcludeAnnotations(t *testing.T) {
 	assert.Equal(t, "default", filteredPods[1].Namespace)
 }
 
-func TestFilter_FilterExcludeAnnotations_Empty(t *testing.T) {
+func TestPodFilter_FilterExcludeAnnotations_Empty(t *testing.T) {
 	filter := PodFilter{
 		ExcludeAnnotations: map[string]string{},
 	}
@@ -126,7 +126,7 @@ func TestFilter_FilterExcludeAnnotations_Empty(t *testing.T) {
 	assert.Len(t, filteredPods, 1)
 }
 
-func TestFilter_FilterExcludeLabels(t *testing.T) {
+func TestPodFilter_FilterExcludeLabels(t *testing.T) {
 	filter := PodFilter{
 		ExcludeLabels: map[string]string{"testkey1": "testvalue1"},
 	}
@@ -145,7 +145,7 @@ func TestFilter_FilterExcludeLabels(t *testing.T) {
 	assert.Equal(t, "default", filteredPods[1].Namespace)
 }
 
-func TestFilter_FilterExcludeLabels_Empty(t *testing.T) {
+func TestPodFilter_FilterExcludeLabels_Empty(t *testing.T) {
 	filter := PodFilter{
 		ExcludeLabels: map[string]string{},
 	}
@@ -158,7 +158,7 @@ func TestFilter_FilterExcludeLabels_Empty(t *testing.T) {
 	assert.Len(t, filteredPods, 1)
 }
 
-func TestFilter_FilterExcludeJobs_true(t *testing.T) {
+func TestPodFilter_FilterExcludeJobs_true(t *testing.T) {
 	filter := PodFilter{
 		ExcludeJobs: true,
 	}
@@ -173,7 +173,7 @@ func TestFilter_FilterExcludeJobs_true(t *testing.T) {
 	assert.Equal(t, "name2", filteredPods[0].Name)
 }
 
-func TestFilter_FilterExcludeJobs_false(t *testing.T) {
+func TestPodFilter_FilterExcludeJobs_false(t *testing.T) {
 	filter := PodFilter{
 		ExcludeJobs: false,
 	}
@@ -187,7 +187,7 @@ func TestFilter_FilterExcludeJobs_false(t *testing.T) {
 	assert.Len(t, filteredPods, 2)
 }
 
-func TestFilter_FilterPods(t *testing.T) {
+func TestPodFilter_FilterPods(t *testing.T) {
 	filter := PodFilter{}
 
 	pods := []v1.Pod{

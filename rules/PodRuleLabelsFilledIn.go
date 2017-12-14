@@ -13,9 +13,9 @@ type PodRuleLabelsFilledIn struct {
 }
 
 func (r PodRuleLabelsFilledIn) FindNonConformingPods(pods []v1.Pod) PodRuleResult {
-	namespaceFiltered := r.Filter.FilterPods(pods)
-	filteredList := []v1.Pod{}
-	for _, pod := range namespaceFiltered {
+	filteredPods := r.Filter.FilterPods(pods)
+	var nonConformingPods []v1.Pod
+	for _, pod := range filteredPods {
 		for _, label := range r.Labels {
 			containsLabel := false
 			for podLabelKey := range pod.ObjectMeta.Labels {
@@ -24,14 +24,14 @@ func (r PodRuleLabelsFilledIn) FindNonConformingPods(pods []v1.Pod) PodRuleResul
 				}
 			}
 			if !containsLabel {
-				filteredList = append(filteredList, pod)
+				nonConformingPods = append(nonConformingPods, pod)
 				break
 			}
 		}
 	}
 
 	return PodRuleResult{
-		Pods:     filteredList,
+		Pods:     nonConformingPods,
 		Reason:   fmt.Sprintf("Labels: %v are not filled in", r.Labels),
 		RuleName: r.Name,
 	}

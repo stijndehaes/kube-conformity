@@ -3,25 +3,28 @@ package rules
 import (
 	"fmt"
 	"k8s.io/client-go/pkg/apis/apps/v1beta1"
+	"github.com/stijndehaes/kube-conformity/filters"
 )
 
 type DeploymentRuleReplicasMinimum struct {
-	Name            string            `yaml:"name"`
-	MinimumReplicas int32             `yaml:"minimum_replicas"`
+	Name            string                   `yaml:"name"`
+	MinimumReplicas int32                    `yaml:"minimum_replicas"`
+	Filter          filters.DeploymentFilter `yaml:"filter"`
 }
 
 func (d DeploymentRuleReplicasMinimum) FindNonConformingDeployment(deployments []v1beta1.Deployment) DeploymentRuleResult {
-	filteredList := []v1beta1.Deployment{}
-	for _, deployment := range deployments {
+	filteredDeployments := d.Filter.FilterDeployments(deployments)
+	var nonConformingDeployments  []v1beta1.Deployment
+	for _, deployment := range filteredDeployments {
 		if *deployment.Spec.Replicas < d.MinimumReplicas {
-			filteredList = append(filteredList, deployment)
+			nonConformingDeployments = append(nonConformingDeployments, deployment)
 		}
 	}
 
 	return DeploymentRuleResult{
-		Deployments:     filteredList,
-		Reason:   fmt.Sprintf("Replicas below the minimum: %v", d.MinimumReplicas),
-		RuleName: d.Name,
+		Deployments: nonConformingDeployments,
+		Reason:      fmt.Sprintf("Replicas below the minimum: %v", d.MinimumReplicas),
+		RuleName:    d.Name,
 	}
 }
 

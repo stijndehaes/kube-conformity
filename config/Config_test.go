@@ -35,10 +35,10 @@ interval: 1h`
 	assert.Equal(t, dur, config.Interval)
 }
 
-func TestKubeConformityConfig_UnmarshalYAML_Labels(t *testing.T) {
+func TestKubeConformityConfig_UnmarshalYAML_PodRulesLabelsFilledIn(t *testing.T) {
 	test := `
 interval: 1h
-labels_filled_in_rules:
+pod_rules_labels_filled_in:
 - name: app label filled in
   labels:
   - app`
@@ -49,10 +49,10 @@ labels_filled_in_rules:
 	assert.Len(t, config.PodRulesLabelsFilledIn, 1)
 }
 
-func TestKubeConformityConfig_UnmarshalYAML_Limits(t *testing.T) {
+func TestKubeConformityConfig_UnmarshalYAML_PodRulesLimitsFilledIn(t *testing.T) {
 	test := `
 interval: 1h
-limits_filled_in_rules:
+pod_rules_limits_filled_in:
 - name: limits filled in
 `
 
@@ -62,16 +62,29 @@ limits_filled_in_rules:
 	assert.Len(t, config.PodRulesLimitsFilledIn, 1)
 }
 
-func TestKubeConformityConfig_UnmarshalYAML_Requests(t *testing.T) {
+func TestKubeConformityConfig_UnmarshalYAML_PodRulesRequestsFilledIn(t *testing.T) {
 	test := `
 interval: 1h
-requests_filled_in_rules:
+pod_rules_requests_filled_in:
 - name: requests filled in`
 
 	config := Config{}
 
 	yaml.Unmarshal([]byte(test), &config)
 	assert.Len(t, config.PodRulesRequestsFilledIn, 1)
+}
+
+func TestKubeConformityConfig_UnmarshalYAML_DeploymentRuleReplicasMinimum(t *testing.T) {
+	test := `
+interval: 1h
+deployment_rules_replicas_minimum:
+- name: replicas minimum 1
+  minimum_replicas: 2`
+
+	config := Config{}
+
+	yaml.Unmarshal([]byte(test), &config)
+	assert.Len(t, config.DeploymentRuleReplicasMinimum, 1)
 }
 
 func TestKubeConformityConfig_UnmarshalYAML_Error(t *testing.T) {
