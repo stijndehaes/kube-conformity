@@ -13,12 +13,12 @@ type Filter struct {
 	ExcludeLabels      map[string]string `yaml:"exclude_labels"`
 }
 
-type DeploymentFilter2 struct {
+type DeploymentFilter struct {
 	Filter `yaml:",inline"`
 }
 
-type PodFilter2 struct {
-	Filter          `yaml:",inline"`
+type PodFilter struct {
+	Filter           `yaml:",inline"`
 	ExcludeJobs bool `yaml:"exclude_jobs"`
 }
 
@@ -30,11 +30,24 @@ func (f Filter) FilterObjects(pods []metav1.Object) []metav1.Object {
 	return filteredPods
 }
 
-func (f PodFilter2) FilterPods(pods []v1.Pod) []v1.Pod {
+func convertPodsToObjects(pods []v1.Pod) []metav1.Object {
 	var objects []metav1.Object
-	for _, pod := range pods {
-		objects = append(objects, pod.GetObjectMeta())
+	for idx := range pods {
+		objects = append(objects, pods[idx].GetObjectMeta())
 	}
+	return objects
+}
+
+func convertDeploymentsToObjects(deployments []v1beta1.Deployment) []metav1.Object {
+	var objects []metav1.Object
+	for idx := range deployments {
+		objects = append(objects, deployments[idx].GetObjectMeta())
+	}
+	return objects
+}
+
+func (f PodFilter) FilterPods(pods []v1.Pod) []v1.Pod {
+	objects := convertPodsToObjects(pods)
 	filteredObjects := f.FilterObjects(objects)
 	filteredObjects = f.FilterExcludeJobs(filteredObjects)
 	var filteredPods []v1.Pod
@@ -48,11 +61,8 @@ func (f PodFilter2) FilterPods(pods []v1.Pod) []v1.Pod {
 	return filteredPods
 }
 
-func (f DeploymentFilter2) FilterDeployments(deployments []v1beta1.Deployment) []v1beta1.Deployment {
-	var objects []metav1.Object
-	for _, deployment := range deployments {
-		objects = append(objects, deployment.GetObjectMeta())
-	}
+func (f DeploymentFilter) FilterDeployments(deployments []v1beta1.Deployment) []v1beta1.Deployment {
+	objects := convertDeploymentsToObjects(deployments)
 	filteredObjects := f.FilterObjects(objects)
 	var filteredDeployments []v1beta1.Deployment
 	for _, deployment := range deployments {
@@ -145,7 +155,7 @@ func (f Filter) FilterExcludeLabels(objects []metav1.Object) []metav1.Object {
 	return filteredObjects
 }
 
-func (f PodFilter2) FilterExcludeJobs(objects []metav1.Object) []metav1.Object {
+func (f PodFilter) FilterExcludeJobs(objects []metav1.Object) []metav1.Object {
 	if !f.ExcludeJobs {
 		return objects
 	}

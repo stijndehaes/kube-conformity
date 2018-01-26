@@ -21,7 +21,7 @@ exclude_annotations:
 exclude_labels:
   labelKey: labelValue`
 
-	deploymentFilter := DeploymentFilter2{}
+	deploymentFilter := DeploymentFilter{}
 	err := yaml.Unmarshal([]byte(test), &deploymentFilter)
 
 	if err != nil {
@@ -50,7 +50,7 @@ exclude_labels:
   labelKey: labelValue
 exclude_jobs: true`
 
-	podFilter := PodFilter2{}
+	podFilter := PodFilter{}
 	err := yaml.Unmarshal([]byte(test), &podFilter)
 
 	if err != nil {
@@ -69,7 +69,7 @@ exclude_jobs: true`
 }
 
 func TestDeploymentFilter_FilterDeployments(t *testing.T) {
-	filter := DeploymentFilter2{}
+	filter := DeploymentFilter{}
 
 	deployments := []v1beta1.Deployment{
 		newDeployment("default", "name1", "uid1"),
@@ -80,7 +80,7 @@ func TestDeploymentFilter_FilterDeployments(t *testing.T) {
 }
 
 func TestPodFilter_FilterPods(t *testing.T) {
-	filter := PodFilter2{}
+	filter := PodFilter{}
 
 	pods := []v1.Pod{
 		newPod("default", "name1", "uid1"),
@@ -118,13 +118,122 @@ func TestFilter_FilterIncludeNamespace_Empty(t *testing.T) {
 	assert.Len(t, filteredObjects, 1)
 }
 
-func convertPodsToObjects(pods []v1.Pod) []metav1.Object {
-	var objects []metav1.Object
-	for _, pod := range pods {
-		objects = append(objects, pod.GetObjectMeta())
+func TestFilter_FilterExcludeNamespace(t *testing.T) {
+	filter := Filter{
+		ExcludeNamespaces: []string{"default"},
 	}
-	return objects
+
+	pods :=[]v1.Pod{
+		newPod("default", "name1", "uid1"),
+		newPod("kube-system", "name2", "uid2"),
+	}
+	objects := convertPodsToObjects(pods)
+
+	filteredObjects := filter.FilterExcludeNamespace(objects)
+	assert.Len(t, filteredObjects, 1)
+	assert.Equal(t, "name2", filteredObjects[0].GetName())
+	assert.Equal(t, "kube-system", filteredObjects[0].GetNamespace())
 }
+
+func TestFilter_FilterExcludeNamespace_Empty(t *testing.T) {
+	filter := Filter{
+		ExcludeNamespaces: []string{},
+	}
+
+	objects := convertPodsToObjects([]v1.Pod{newPod("default", "name", "uid1")})
+
+	filteredObjects := filter.FilterExcludeNamespace(objects)
+	assert.Len(t, filteredObjects, 1)
+}
+
+func TestFilter_FilterExcludeAnnotations(t *testing.T) {
+	filter := Filter{
+		ExcludeAnnotations: map[string]string{"testkey1": "testvalue1"},
+	}
+
+	pods := []v1.Pod{
+		newPodWithAnnotations("default", "name1", "uid1", map[string]string{"testkey1": "testvalue1"}),
+		newPodWithAnnotations("default", "name2", "uid2", map[string]string{"testkey1": "testvalue2"}),
+		newPodWithAnnotations("default", "name3", "uid3", map[string]string{"testkey2": "testvalue1"}),
+	}
+	objects := convertPodsToObjects(pods)
+
+	filteredObjects := filter.FilterExcludeAnnotations(objects)
+	assert.Len(t, filteredObjects, 2)
+	assert.Equal(t, "name2", filteredObjects[0].GetName())
+	assert.Equal(t, "default", filteredObjects[0].GetNamespace())
+	assert.Equal(t, "name3", filteredObjects[1].GetName())
+	assert.Equal(t, "default", filteredObjects[1].GetNamespace())
+}
+
+func TestFilter_FilterExcludeAnnotations_Empty(t *testing.T) {
+	filter := Filter{
+		ExcludeAnnotations: map[string]string{},
+	}
+
+	objects := convertPodsToObjects([]v1.Pod{newPod("default", "name", "uid1")})
+
+	filteredObjects := filter.FilterExcludeAnnotations(objects)
+	assert.Len(t, filteredObjects, 1)
+}
+
+func TestFilter_FilterExcludeLabels(t *testing.T) {
+	filter := Filter{
+		ExcludeLabels: map[string]string{"testkey1": "testvalue1"},
+	}
+
+	pods := []v1.Pod{
+		newPodWithLabels("default", "name1", "uid1", map[string]string{"testkey1": "testvalue1"}),
+		newPodWithLabels("default", "name2", "uid2", map[string]string{"testkey1": "testvalue2"}),
+		newPodWithLabels("default", "name3", "uid3", map[string]string{"testkey2": "testvalue1"}),
+	}
+	objects := convertPodsToObjects(pods)
+
+	filteredObjects := filter.FilterExcludeLabels(objects)
+	assert.Len(t, filteredObjects, 2)
+	assert.Equal(t, "name2", filteredObjects[0].GetName())
+	assert.Equal(t, "default", filteredObjects[0].GetNamespace())
+	assert.Equal(t, "name3", filteredObjects[1].GetName())
+	assert.Equal(t, "default", filteredObjects[1].GetNamespace())
+}
+
+func TestFilter_FilterExcludeLabels_Empty(t *testing.T) {
+	filter := Filter{
+		ExcludeLabels: map[string]string{},
+	}
+
+	objects := convertPodsToObjects([]v1.Pod{newPod("default", "name", "uid1")})
+
+	filteredObjects := filter.FilterExcludeLabels(objects)
+	assert.Len(t, filteredObjects, 1)
+}
+
+func Test_convertPodsToObjects(t *testing.T) {
+	pods :=[]v1.Pod{
+		newPod("default", "name1", "uid1"),
+		newPod("kube-system", "name2", "uid2"),
+	}
+	objects := convertPodsToObjects(pods)
+
+	assert.Len(t, objects, 2)
+	assert.Equal(t, objects[0], pods[0].GetObjectMeta())
+	assert.Equal(t, objects[1], pods[1].GetObjectMeta())
+	assert.NotEqual(t, objects[0], objects[1])
+}
+
+func Test_convertDeploymentsToObjects(t *testing.T) {
+	deployments :=[]v1beta1.Deployment{
+		newDeployment("default", "name1", "uid1"),
+		newDeployment("kube-system", "name2", "uid2"),
+	}
+	objects := convertDeploymentsToObjects(deployments)
+
+	assert.Len(t, objects, 2)
+	assert.Equal(t, objects[0], deployments[0].GetObjectMeta())
+	assert.Equal(t, objects[1], deployments[1].GetObjectMeta())
+	assert.NotEqual(t, objects[0], objects[1])
+}
+
 
 func newDeployment(namespace, name string, uid types.UID) v1beta1.Deployment {
 	return v1beta1.Deployment{
@@ -132,28 +241,6 @@ func newDeployment(namespace, name string, uid types.UID) v1beta1.Deployment {
 			Namespace: namespace,
 			Name:      name,
 			UID: uid,
-		},
-	}
-}
-
-func newDeploymentWithLabels(namespace, name string, uid types.UID, labels map[string]string) v1beta1.Deployment {
-	return v1beta1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
-			UID: uid,
-			Labels:    labels,
-		},
-	}
-}
-
-func newDeploymentWithAnnotations(namespace, name string, uid types.UID, annotations map[string]string) v1beta1.Deployment {
-	return v1beta1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace:   namespace,
-			Name:        name,
-			UID: uid,
-			Annotations: annotations,
 		},
 	}
 }
