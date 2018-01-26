@@ -11,6 +11,7 @@ import (
 	"github.com/stijndehaes/kube-conformity/rules"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/apis/apps/v1beta1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 var logOutput = bytes.NewBuffer([]byte{})
@@ -27,8 +28,8 @@ func TestKubeConformity_EvaluatePodRules(t *testing.T) {
 		PodRulesRequestsFilledIn: []rules.PodRuleRequestsFilledIn{{}},
 	}
 	pods := []v1.Pod{
-		newPodWithLabels("default", "foo", []string{}),
-		newPodWithLabels("testing", "bar", []string{"app"}),
+		newPodWithLabels("default", "foo", "uid1", []string{}),
+		newPodWithLabels("testing", "bar", "uid2", []string{"app"}),
 	}
 	kubeConformity := setup(t, pods, nil, kubeConfig)
 	conformityResult := kubeConformity.EvaluatePodRules()
@@ -42,8 +43,8 @@ func TestKubeConformity_EvaluateDeploymentRulesRules(t *testing.T) {
 		}},
 	}
 	deployments := []v1beta1.Deployment{
-		newDeployment("default", "foo", 1),
-		newDeployment("testing", "bar", 2),
+		newDeployment("default", "foo", "uid1", 1),
+		newDeployment("testing", "bar", "uid2", 2),
 	}
 	kubeConformity := setup(t, nil, deployments, kubeConfig)
 	conformityResult := kubeConformity.EvaluateDeploymentRules()
@@ -57,13 +58,13 @@ func TestKubeConformity_LogNonConforming_Pods(t *testing.T) {
 		},
 	}
 	pods := []v1.Pod{
-		newPodWithLabels("default", "foo", []string{}),
-		newPodWithLabels("testing", "bar", []string{"app"}),
+		newPodWithLabels("default", "foo", "uid1", []string{}),
+		newPodWithLabels("testing", "bar", "uid2", []string{"app"}),
 	}
 	kubeConformity := setup(t, pods, nil, kubeConfig)
 	kubeConformity.LogNonConforming()
 	logOutput.String()
-	assert.Equal(t, "rule name: \nrule reason: Labels: [app] are not filled in\nfoo_default()\n", logOutput.String())
+	assert.Equal(t, "rule name: \nrule reason: Labels: [app] are not filled in\nfoo_default\n", logOutput.String())
 }
 
 func TestKubeConformity_LogNonConforming_Deployments(t *testing.T) {
@@ -73,8 +74,8 @@ func TestKubeConformity_LogNonConforming_Deployments(t *testing.T) {
 		}},
 	}
 	deployments := []v1beta1.Deployment{
-		newDeployment("default", "foo", 1),
-		newDeployment("testing", "bar", 2),
+		newDeployment("default", "foo", "uid1", 1),
+		newDeployment("testing", "bar", "uid2", 2),
 	}
 	kubeConformity := setup(t, nil, deployments, kubeConfig)
 	kubeConformity.LogNonConforming()
@@ -100,7 +101,7 @@ func setup(t *testing.T, pods []v1.Pod, deployments []v1beta1.Deployment, kubeCo
 	return New(client, logger, kubeConfig)
 }
 
-func newPodWithLabels(namespace, name string, labels []string) v1.Pod {
+func newPodWithLabels(namespace, name string, uid types.UID, labels []string) v1.Pod {
 	labelMap := make(map[string]string)
 	for _, label := range labels {
 		labelMap[label] = "randomString"
@@ -109,16 +110,18 @@ func newPodWithLabels(namespace, name string, labels []string) v1.Pod {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
+			UID: 	   uid,
 			Labels:    labelMap,
 		},
 	}
 }
 
-func newDeployment(namespace, name string, replicas int32) v1beta1.Deployment {
+func newDeployment(namespace, name string, uid types.UID, replicas int32) v1beta1.Deployment {
 	return v1beta1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
+			UID:       uid,
 		},
 		Spec:v1beta1.DeploymentSpec{
 			Replicas: &replicas,
