@@ -6,6 +6,7 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 func TestFilterOnLabelsFilledIn(t *testing.T) {
@@ -13,8 +14,8 @@ func TestFilterOnLabelsFilledIn(t *testing.T) {
 		Name:   "app label",
 		Labels: []string{"app"},
 	}
-	pod1 := newPodWithLabel("testing", "bar1", "test")
-	pod2 := newPodWithLabel("testing", "bar2", "app")
+	pod1 := newPodWithLabel("testing", "bar1", "uid1", "test")
+	pod2 := newPodWithLabel("testing", "bar2", "uid2","app")
 	pods := []v1.Pod{
 		pod1,
 		pod2,
@@ -30,8 +31,8 @@ func TestFilterOnLabelsFilledInMultipleLabels(t *testing.T) {
 		Name:   "app label",
 		Labels: []string{"app"},
 	}
-	pod1 := newPodWithLabels("testing", "bar1", []string{})
-	pod2 := newPodWithLabels("testing", "bar2", []string{"app", "environment"})
+	pod1 := newPodWithLabels("testing", "bar1", "uid1",[]string{})
+	pod2 := newPodWithLabels("testing", "bar2", "uid2",[]string{"app", "environment"})
 	pods := []v1.Pod{
 		pod1,
 		pod2,
@@ -47,8 +48,8 @@ func TestFilterOnLabelsFilledInAllLabelsMatch(t *testing.T) {
 		Name:   "app label",
 		Labels: []string{"app", "environment"},
 	}
-	pod1 := newPodWithLabels("testing", "bar1", []string{})
-	pod2 := newPodWithLabels("testing", "bar2", []string{"app", "environment"})
+	pod1 := newPodWithLabels("testing", "bar1", "uid1",[]string{})
+	pod2 := newPodWithLabels("testing", "bar2", "uid2",[]string{"app", "environment"})
 	pods := []v1.Pod{
 		pod1,
 		pod2,
@@ -64,8 +65,8 @@ func TestFilterOnLabelsFilledInOnlyOneLabelMatch(t *testing.T) {
 		Name:   "app label",
 		Labels: []string{"app", "environment"},
 	}
-	pod1 := newPodWithLabels("testing", "bar1", []string{"app", "other"})
-	pod2 := newPodWithLabels("testing", "bar2", []string{"app", "environment"})
+	pod1 := newPodWithLabels("testing", "bar1", "uid1",[]string{"app", "other"})
+	pod2 := newPodWithLabels("testing", "bar2", "uid2",[]string{"app", "environment"})
 	pods := []v1.Pod{
 		pod1,
 		pod2,
@@ -77,12 +78,12 @@ func TestFilterOnLabelsFilledInOnlyOneLabelMatch(t *testing.T) {
 }
 
 func TestPodRuleLabelsFilledIn_UnmarshalYAML_LabelsNotFilledIn(t *testing.T) {
-	string := `
+	yamlString := `
 name: app label filled in`
 
 	rule := PodRuleLabelsFilledIn{}
 
-	err := yaml.Unmarshal([]byte(string), &rule)
+	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
 	if err == nil {
 		t.Fail()
@@ -90,13 +91,13 @@ name: app label filled in`
 }
 
 func TestPodRuleLabelsFilledIn_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
-	string := `
+	yamlString := `
 labels:
 - app`
 
 	rule := PodRuleLabelsFilledIn{}
 
-	err := yaml.Unmarshal([]byte(string), &rule)
+	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
 	if err == nil {
 		t.Fail()
@@ -104,25 +105,25 @@ labels:
 }
 
 func TestPodRuleLabelsFilledIn_UnmarshalYAML(t *testing.T) {
-	string := `
+	yamlString := `
 name: app label filled in
 labels:
 - app`
 
 	rule := PodRuleLabelsFilledIn{}
 
-	err := yaml.Unmarshal([]byte(string), &rule)
+	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
 	if err != nil {
 		t.Fail()
 	}
 }
 
-func newPodWithLabel(namespace, name, label string) v1.Pod {
-	return newPodWithLabels(namespace, name, []string{label})
+func newPodWithLabel(namespace, name string, uid types.UID, label string) v1.Pod {
+	return newPodWithLabels(namespace, name, uid, []string{label})
 }
 
-func newPodWithLabels(namespace, name string, labels []string) v1.Pod {
+func newPodWithLabels(namespace, name string, uid types.UID, labels []string) v1.Pod {
 	labelMap := make(map[string]string)
 	for _, label := range labels {
 		labelMap[label] = "randomString"
@@ -132,6 +133,7 @@ func newPodWithLabels(namespace, name string, labels []string) v1.Pod {
 			Namespace: namespace,
 			Name:      name,
 			Labels:    labelMap,
+			UID:       uid,
 		},
 	}
 }
