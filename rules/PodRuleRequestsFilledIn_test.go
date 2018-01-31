@@ -7,12 +7,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 func TestFilterOnRequestsFilledIn(t *testing.T) {
 	rule := PodRuleRequestsFilledIn{}
-	pod1 := newPodWithRequests("default", "foo", "", "")
-	pod2 := newPodWithRequests("testing", "bar", "400m", "1.1Gi")
+	pod1 := newPodWithRequests("default", "foo","uid1", "", "")
+	pod2 := newPodWithRequests("testing", "bar","uid2", "400m", "1.1Gi")
 	pods := []v1.Pod{
 		pod1,
 		pod2,
@@ -23,7 +24,7 @@ func TestFilterOnRequestsFilledIn(t *testing.T) {
 	assert.NotEqual(t, pod2.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 }
 
-func newPodWithRequests(namespace, name, requestCpu, requestMemory string) v1.Pod {
+func newPodWithRequests(namespace, name string, uid types.UID, requestCpu, requestMemory string) v1.Pod {
 	resources := v1.ResourceRequirements{
 		Requests:   make(v1.ResourceList),
 	}
@@ -37,6 +38,7 @@ func newPodWithRequests(namespace, name, requestCpu, requestMemory string) v1.Po
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: 	namespace,
 			Name:      	name,
+			UID:        uid,
 		},
 		Spec: v1.PodSpec{
 			Containers: []v1.Container{
@@ -50,13 +52,13 @@ func newPodWithRequests(namespace, name, requestCpu, requestMemory string) v1.Po
 }
 
 func TestPodRuleRequestsFilledIn_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
-	string := `
+	yamlString := `
 filter:
   namespaces: test`
 
 	rule := PodRuleRequestsFilledIn{}
 
-	err := yaml.Unmarshal([]byte(string), &rule)
+	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
 	if err == nil {
 		t.Fail()
@@ -64,11 +66,11 @@ filter:
 }
 
 func TestPodRuleRequestsFilledIn_UnmarshalYAML(t *testing.T) {
-	string := `name: requests filled in`
+	yamlString := `name: requests filled in`
 
 	rule := PodRuleRequestsFilledIn{}
 
-	err := yaml.Unmarshal([]byte(string), &rule)
+	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
 	if err != nil {
 		t.Fail()

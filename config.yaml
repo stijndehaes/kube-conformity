@@ -19,6 +19,9 @@ pod_rules_requests_filled_in:
 deployment_rules_replicas_minimum:
 - name: Minimum of 2 replicas
   minimum_replicas: 2
+  filter:
+    exclude_namespaces:
+    - kube-system
 email_config:
   enabled: false
   to: test@gmail.com

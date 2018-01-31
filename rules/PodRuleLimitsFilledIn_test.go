@@ -7,12 +7,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 func TestFilterOnLimits(t *testing.T) {
 	rule := PodRuleLimitsFilledIn{}
-	pod1 := newPodWithLimits("default", "foo", "", "")
-	pod2 := newPodWithLimits("testing", "bar", "400m", "1.1Gi")
+	pod1 := newPodWithLimits("default", "foo", "uid1", "", "")
+	pod2 := newPodWithLimits("testing", "bar", "uid2", "400m", "1.1Gi")
 	pods := []v1.Pod{
 		pod1,
 		pod2,
@@ -23,7 +24,7 @@ func TestFilterOnLimits(t *testing.T) {
 	assert.NotEqual(t, pod2.ObjectMeta.Name, result.Pods[0].ObjectMeta.Name)
 }
 
-func newPodWithLimits(namespace, name, limitCpu, limitMemory string) v1.Pod {
+func newPodWithLimits(namespace, name string, uid types.UID, limitCpu, limitMemory string) v1.Pod {
 	resources := v1.ResourceRequirements{
 		Limits:   make(v1.ResourceList),
 	}
@@ -37,6 +38,7 @@ func newPodWithLimits(namespace, name, limitCpu, limitMemory string) v1.Pod {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: 	namespace,
 			Name:      	name,
+			UID:		uid,
 		},
 		Spec: v1.PodSpec{
 			Containers: []v1.Container{
@@ -50,13 +52,13 @@ func newPodWithLimits(namespace, name, limitCpu, limitMemory string) v1.Pod {
 }
 
 func TestPodRuleLimitsFilledIn_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
-	string := `
+	yamlString := `
 filter:
   namespaces: test`
 
 	rule := PodRuleLimitsFilledIn{}
 
-	err := yaml.Unmarshal([]byte(string), &rule)
+	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
 	if err == nil {
 		t.Fail()
@@ -64,11 +66,11 @@ filter:
 }
 
 func TestPodRuleLimitsFilledIn_UnmarshalYAML(t *testing.T) {
-	string := `name: limits filled in`
+	yamlString := `name: limits filled in`
 
 	rule := PodRuleLimitsFilledIn{}
 
-	err := yaml.Unmarshal([]byte(string), &rule)
+	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
 	if err != nil {
 		t.Fail()
