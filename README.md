@@ -10,30 +10,40 @@ An example on how to run this project on kubernetes can be found in the examples
 
 # Rules
 
-At this moment there are three rules defined:
+At this moment there are three rules defined on pods:
 
 * Labels filled in: Takes a list of labels and check if pods have these labels defined
 * Resource requests filled in: Checks all pods if they have resource requests filled in
 * Limits requests filled in: Checks all pods if they have limits requests filled in
 
+And one rule defined on deployments:
+
+* Deployment minimum replicas: Checks that every deployment has a minimum of a certain number of replicas
+
 The rules are configured using a yaml config. An example of this config is:
 
 ```yaml
 interval: 1h
-labels_filled_in_rules:
+pod_rules_labels_filled_in:
 - name: Check if label app is active on every pod except in kube-system
   labels:
   - app
   filter:
     exclude_namespaces:
     - kube-system
-limits_filled_in_rules:
+pod_rules_limits_filled_in:
 - name: Checks if limits are filled in everywhere except in kube-system
   filter:
     exclude_namespaces:
     - kube-system
-requests_filled_in_rules:
+pod_rules_requests_filled_in:
 - name: Checks if requests are filled in everywhere
+  filter:
+    exclude_namespaces:
+    - kube-system
+deployment_rules_replicas_minimum:
+- name: Checks that al deployment have a minimum of 2 replicas
+  minimum_replicas: 2
   filter:
     exclude_namespaces:
     - kube-system
@@ -46,7 +56,7 @@ Each rule can be filtered on the base of five fields:
 * exclude_namespaces: A list of namespaces to exclude, if empty defaults to none
 * exclude_annotations: A map of annotations to exclude
 * exclude_labels: A map of labels to exclude
-* exclude_jobs: Excludes pod created by a job, filters on the labelkey `job-name`
+* exclude_jobs (Only available on the three pod rules): Excludes pod created by a job, filters on the labelkey `job-name`
 
 An example of the yaml configuration:
 

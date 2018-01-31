@@ -10,7 +10,7 @@ import (
 )
 
 func TestFilterOnRequestsFilledIn(t *testing.T) {
-	rule := RequestsFilledInRule{}
+	rule := PodRuleRequestsFilledIn{}
 	pod1 := newPodWithRequests("default", "foo", "", "")
 	pod2 := newPodWithRequests("testing", "bar", "400m", "1.1Gi")
 	pods := []v1.Pod{
@@ -49,12 +49,12 @@ func newPodWithRequests(namespace, name, requestCpu, requestMemory string) v1.Po
 	}
 }
 
-func TestRequestsFilledInRule_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
+func TestPodRuleRequestsFilledIn_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
 	string := `
 filter:
   namespaces: test`
 
-	rule := RequestsFilledInRule{}
+	rule := PodRuleRequestsFilledIn{}
 
 	err := yaml.Unmarshal([]byte(string), &rule)
 
@@ -63,10 +63,10 @@ filter:
 	}
 }
 
-func TestRequestsFilledInRule_UnmarshalYAML(t *testing.T) {
+func TestPodRuleRequestsFilledIn_UnmarshalYAML(t *testing.T) {
 	string := `name: requests filled in`
 
-	rule := RequestsFilledInRule{}
+	rule := PodRuleRequestsFilledIn{}
 
 	err := yaml.Unmarshal([]byte(string), &rule)
 

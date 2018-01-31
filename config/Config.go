@@ -7,11 +7,12 @@ import (
 )
 
 type Config struct {
-	Interval              time.Duration                `yaml:"interval"`
-	LabelsFilledInRules   []rules.LabelsFilledInRule   `yaml:"labels_filled_in_rules"`
-	LimitsFilledInRules   []rules.LimitsFilledInRule   `yaml:"limits_filled_in_rules"`
-	RequestsFilledInRules []rules.RequestsFilledInRule `yaml:"requests_filled_in_rules"`
-	EmailConfig           EmailConfig                  `yaml:"email_config"`
+	Interval                      time.Duration                         `yaml:"interval"`
+	PodRulesLabelsFilledIn        []rules.PodRuleLabelsFilledIn         `yaml:"pod_rules_labels_filled_in"`
+	PodRulesLimitsFilledIn        []rules.PodRuleLimitsFilledIn         `yaml:"pod_rules_limits_filled_in"`
+	PodRulesRequestsFilledIn      []rules.PodRuleRequestsFilledIn       `yaml:"pod_rules_requests_filled_in"`
+	DeploymentRuleReplicasMinimum []rules.DeploymentRuleReplicasMinimum `yaml:"deployment_rules_replicas_minimum"`
+	EmailConfig                   EmailConfig                           `yaml:"email_config"`
 }
 
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {

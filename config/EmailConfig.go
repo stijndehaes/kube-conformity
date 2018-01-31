@@ -34,32 +34,34 @@ type EmailConfig struct {
 	Template     string `yaml:"template,omitempty"`
 }
 
-func (c *EmailConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultEmailConfig
+func (emailConfig *EmailConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*emailConfig = DefaultEmailConfig
 	type plain EmailConfig
-	if err := unmarshal((*plain)(c)); err != nil {
+	if err := unmarshal((*plain)(emailConfig)); err != nil {
 		return err
 	}
-	if c.To == "" {
+	if emailConfig.To == "" {
 		return fmt.Errorf("missing to address in email config")
 	}
-	if c.Host == "" {
+	if emailConfig.Host == "" {
 		return fmt.Errorf("missing host in email config")
 	}
 	authPassword := os.Getenv("CONFORMITY_EMAIL_AUTH_PASSWORD")
 	if authPassword != "" {
-		c.AuthPassword = authPassword
+		emailConfig.AuthPassword = authPassword
 	}
 	return nil
 }
 
-func (e EmailConfig) RenderTemplate(results []rules.RuleResult) (string, error) {
+func (emailConfig EmailConfig) RenderTemplate(podRuleResults []rules.PodRuleResult, deploymentResults []rules.DeploymentRuleResult) (string, error) {
 	templateData := struct {
-		RuleResults []rules.RuleResult
+		PodRuleResults []rules.PodRuleResult
+		DeploymentRuleResults []rules.DeploymentRuleResult
 	}{
-		RuleResults: results,
+		PodRuleResults: podRuleResults,
+		DeploymentRuleResults: deploymentResults,
 	}
-	t, err := template.ParseFiles(e.Template)
+	t, err := template.ParseFiles(emailConfig.Template)
 	if err != nil {
 		return "", err
 	}
@@ -70,11 +72,11 @@ func (e EmailConfig) RenderTemplate(results []rules.RuleResult) (string, error) 
 	return buf.String(), nil
 }
 
-func(e EmailConfig) GetMailHeaders() map[string]string {
+func(emailConfig EmailConfig) GetMailHeaders() map[string]string {
 	headers := make(map[string]string)
-	headers["From"] = e.From
-	headers["To"] = e.To
-	headers["Subject"] = e.Subject + "!"
+	headers["From"] = emailConfig.From
+	headers["To"] = emailConfig.To
+	headers["Subject"] = emailConfig.Subject + "!"
 	headers["MIME-Version"] = "1.0"
 	headers["Content-Type"] = "text/html; charset=\"utf-8\""
 	headers["Content-Transfer-Encoding"] = "base64"
@@ -89,21 +91,21 @@ func ConstructHeadersString(headers map[string]string) string {
 	return message
 }
 
-func (e EmailConfig) ConstructEmailBody(results []rules.RuleResult) ([]byte, error) {
-	headers := ConstructHeadersString(e.GetMailHeaders())
-	body, err := e.RenderTemplate(results)
+func (emailConfig EmailConfig) ConstructEmailBody(podRuleResults []rules.PodRuleResult, deploymentResults []rules.DeploymentRuleResult) ([]byte, error) {
+	headers := ConstructHeadersString(emailConfig.GetMailHeaders())
+	body, err := emailConfig.RenderTemplate(podRuleResults, deploymentResults)
 	if err != nil {
 		return []byte{}, err
 	}
 	return []byte(headers + "\n" + base64.StdEncoding.EncodeToString([]byte(body))), nil
 }
 
-func (e EmailConfig) SendMail(results []rules.RuleResult) error {
-	msg, err := e.ConstructEmailBody(results)
+func (emailConfig EmailConfig) SendMail(podRuleResults []rules.PodRuleResult, deploymentRuleResults []rules.DeploymentRuleResult) error {
+	msg, err := emailConfig.ConstructEmailBody(podRuleResults, deploymentRuleResults)
 	if err != nil {
 		return err
 	}
-	auth := smtp.PlainAuth(e.AuthIdentity, e.AuthUsername, e.AuthPassword, e.Host)
-	err = smtp.SendMail(e.Host+":"+strconv.Itoa(e.Port), auth, e.From, []string{e.To}, msg)
+	auth := smtp.PlainAuth(emailConfig.AuthIdentity, emailConfig.AuthUsername, emailConfig.AuthPassword, emailConfig.Host)
+	err = smtp.SendMail(emailConfig.Host+":"+strconv.Itoa(emailConfig.Port), auth, emailConfig.From, []string{emailConfig.To}, msg)
 	return err
 }
