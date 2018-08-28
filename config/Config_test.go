@@ -6,17 +6,12 @@ import (
 	"testing"
 )
 
-func TestKubeConformityConfig_UnmarshalYAML_MissingInterval(t *testing.T) {
-	test := `
-limits_filled_in_rules:
-- name: limits filled in`
-
+func TestKubeConformityConfig_UnmarshalYAML(t *testing.T) {
+	test := ``
 	config := Config{}
-
 	err := yaml.Unmarshal([]byte(test), &config)
-
-	if err == nil {
-		t.Fail()
+	if err != nil {
+		t.Error(err)
 	}
 }
 
