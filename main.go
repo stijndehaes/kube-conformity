@@ -1,20 +1,18 @@
 package main
 
 import (
-	"os"
-	"time"
-
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"os"
 
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/stijndehaes/kube-conformity/config"
 	"github.com/stijndehaes/kube-conformity/kubeconformity"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"github.com/stijndehaes/kube-conformity/config"
 )
 
 var (
@@ -53,14 +51,9 @@ func main() {
 		config,
 	)
 
-	for {
-		err := kubeConformity.LogNonConforming()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		log.Debugf("Sleeping for %s...", kubeConformity.KubeConformityConfig.Interval)
-		time.Sleep(kubeConformity.KubeConformityConfig.Interval)
+	err = kubeConformity.LogNonConforming()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 

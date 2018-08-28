@@ -1,0 +1,26 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: kube-conformity
+spec:
+  schedule: "* 1 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: kube-conformity
+        spec:
+          serviceAccountName: kube-conformity
+          containers:
+          - name: kube-conformity
+            image: sdehaes/kube-conformity:latest
+            args:
+            - --config-location=/etc/config/config.yaml
+            volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+          volumes:
+          - name: config-volume
+            configMap:
+              name: kube-conformity

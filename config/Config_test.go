@@ -1,10 +1,9 @@
 package config
 
 import (
-	"testing"
-	"gopkg.in/yaml.v2"
 	"github.com/stretchr/testify/assert"
-	"time"
+	"gopkg.in/yaml.v2"
+	"testing"
 )
 
 func TestKubeConformityConfig_UnmarshalYAML_MissingInterval(t *testing.T) {
@@ -20,24 +19,9 @@ limits_filled_in_rules:
 		t.Fail()
 	}
 }
-func TestKubeConformityConfig_UnmarshalYAML(t *testing.T) {
-	test := `
-interval: 1h`
-
-	config := Config{}
-
-	err := yaml.Unmarshal([]byte(test), &config)
-
-	if err != nil {
-		t.Error(err)
-	}
-	dur, _ := time.ParseDuration("1h")
-	assert.Equal(t, dur, config.Interval)
-}
 
 func TestKubeConformityConfig_UnmarshalYAML_PodRulesLabelsFilledIn(t *testing.T) {
 	test := `
-interval: 1h
 pod_rules_labels_filled_in:
 - name: app label filled in
   labels:
@@ -51,7 +35,6 @@ pod_rules_labels_filled_in:
 
 func TestKubeConformityConfig_UnmarshalYAML_PodRulesLimitsFilledIn(t *testing.T) {
 	test := `
-interval: 1h
 pod_rules_limits_filled_in:
 - name: limits filled in
 `
@@ -64,7 +47,6 @@ pod_rules_limits_filled_in:
 
 func TestKubeConformityConfig_UnmarshalYAML_PodRulesRequestsFilledIn(t *testing.T) {
 	test := `
-interval: 1h
 pod_rules_requests_filled_in:
 - name: requests filled in`
 
@@ -76,7 +58,6 @@ pod_rules_requests_filled_in:
 
 func TestKubeConformityConfig_UnmarshalYAML_DeploymentRuleReplicasMinimum(t *testing.T) {
 	test := `
-interval: 1h
 deployment_rules_replicas_minimum:
 - name: replicas minimum 1
   minimum_replicas: 2`
