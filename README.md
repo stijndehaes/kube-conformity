@@ -23,7 +23,6 @@ And one rule defined on deployments:
 The rules are configured using a yaml config. An example of this config is:
 
 ```yaml
-interval: 1h
 pod_rules_labels_filled_in:
 - name: Check if label app is active on every pod except in kube-system
   labels:
@@ -83,7 +82,6 @@ The auth_password variable can also be set by and environment variable called: `
 An example of a full email config would be.
 
 ```yaml
-interval: 1h
 limits_filled_in_rules:
 - name: Checks if limits are filled in everywhere
 email_config:

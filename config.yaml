@@ -1,4 +1,3 @@
-interval: 1h
 pod_rules_labels_filled_in:
 - name: Check if label app is active on every pod
   labels:
