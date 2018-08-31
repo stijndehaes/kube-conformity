@@ -37,7 +37,7 @@ func (deploymentRuleReplicasMinimum *DeploymentRuleReplicasMinimum) UnmarshalYAM
 		return fmt.Errorf("Missing minimum replicas")
 	}
 	if deploymentRuleReplicasMinimum.Name == "" {
-		return fmt.Errorf("Missing name for DeploymentRuleReplicasMinimum")
+		deploymentRuleReplicasMinimum.Name = "Minimum replicas too low"
 	}
 	return nil
 }

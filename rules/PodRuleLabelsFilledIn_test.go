@@ -90,7 +90,7 @@ name: app label filled in`
 	}
 }
 
-func TestPodRuleLabelsFilledIn_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
+func TestPodRuleLabelsFilledIn_UnmarshalYAML_DefaultName(t *testing.T) {
 	yamlString := `
 labels:
 - app`
@@ -99,9 +99,10 @@ labels:
 
 	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
-	if err == nil {
+	if err != nil {
 		t.Fail()
 	}
+	assert.Equal(t, "Missing labels", rule.Name)
 }
 
 func TestPodRuleLabelsFilledIn_UnmarshalYAML(t *testing.T) {

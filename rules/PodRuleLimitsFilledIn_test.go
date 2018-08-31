@@ -51,7 +51,7 @@ func newPodWithLimits(namespace, name string, uid types.UID, limitCpu, limitMemo
 	}
 }
 
-func TestPodRuleLimitsFilledIn_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
+func TestPodRuleLimitsFilledIn_UnmarshalYAML_DefaultName(t *testing.T) {
 	yamlString := `
 filter:
   namespaces: test`
@@ -60,9 +60,10 @@ filter:
 
 	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
-	if err == nil {
+	if err != nil {
 		t.Fail()
 	}
+	assert.Equal(t, "Pod resource limits are not filled in", rule.Name)
 }
 
 func TestPodRuleLimitsFilledIn_UnmarshalYAML(t *testing.T) {

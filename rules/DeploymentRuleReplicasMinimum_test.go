@@ -38,7 +38,7 @@ minimum_replicas: 2`
 	assert.Equal(t, int32(2), rule.MinimumReplicas)
 }
 
-func TestDeploymentRuleReplicas_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
+func TestDeploymentRuleReplicas_UnmarshalYAML_DefaultName(t *testing.T) {
 	yamlString := `
 minimum_replicas: 2`
 
@@ -46,9 +46,10 @@ minimum_replicas: 2`
 
 	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
-	if err == nil {
+	if err != nil {
 		t.Fail()
 	}
+	assert.Equal(t, "Minimum replicas too low", rule.Name)
 }
 
 func TestDeploymentRuleReplicas_UnmarshalYAML_MinimumReplicasNotFilledIn(t *testing.T) {

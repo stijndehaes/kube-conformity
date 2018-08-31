@@ -6,17 +6,17 @@ import (
 	"github.com/stijndehaes/kube-conformity/filters"
 )
 
-type PodRuleReadinessProbeFilledIn struct {
+type PodRuleLivenessProbeFilledIn struct {
 	Name   string            `yaml:"name"`
 	Filter filters.PodFilter `yaml:"filter"`
 }
 
-func (r PodRuleReadinessProbeFilledIn) FindNonConformingPods(pods []v1.Pod) PodRuleResult {
+func (r PodRuleLivenessProbeFilledIn) FindNonConformingPods(pods []v1.Pod) PodRuleResult {
 	filteredPods := r.Filter.FilterPods(pods)
 	var nonConformingPods []v1.Pod
 	for _, pod := range filteredPods {
 		for _, container := range pod.Spec.Containers {
-			if container.ReadinessProbe == nil {
+			if container.LivenessProbe == nil {
 				nonConformingPods = append(nonConformingPods, pod)
 				break
 			}
@@ -25,18 +25,18 @@ func (r PodRuleReadinessProbeFilledIn) FindNonConformingPods(pods []v1.Pod) PodR
 
 	return PodRuleResult{
 		Pods:     nonConformingPods,
-		Reason:   fmt.Sprintf("ReadinessProbes are not filled in"),
+		Reason:   fmt.Sprintf("Liveness probes are not filled in"),
 		RuleName: r.Name,
 	}
 }
 
-func (r *PodRuleReadinessProbeFilledIn) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type plain PodRuleReadinessProbeFilledIn
+func (r *PodRuleLivenessProbeFilledIn) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type plain PodRuleLivenessProbeFilledIn
 	if err := unmarshal((*plain)(r)); err != nil {
 		return err
 	}
 	if r.Name == "" {
-		r.Name = "Readiness probe not filled in"
+		r.Name = "Liveness probe not filled in"
 	}
 	return nil
 }

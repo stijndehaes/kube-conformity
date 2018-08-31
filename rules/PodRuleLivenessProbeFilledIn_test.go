@@ -9,11 +9,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func TestPodRuleReadinessProbeFilledIn_UnmarshalYAML(t *testing.T) {
+func TestPodRuleLivenessProbeFilledIn_UnmarshalYAML(t *testing.T) {
 	yamlString := `
-name: readinessprobe not filled in`
+name: liveness probe not filled in`
 
-	rule := PodRuleReadinessProbeFilledIn{}
+	rule := PodRuleLivenessProbeFilledIn{}
 
 	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
@@ -22,33 +22,33 @@ name: readinessprobe not filled in`
 	}
 }
 
-func TestPodRuleReadinessProbeFilledIn_UnmarshalYAML_DefaultName(t *testing.T) {
+func TestPodRuleLivenessProbeFilledIn_UnmarshalYAML_DefaultName(t *testing.T) {
 	yamlString := `
 filter:
   namespaces: test`
 
-	rule := PodRuleReadinessProbeFilledIn{}
+	rule := PodRuleLivenessProbeFilledIn{}
 
 	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
 	if err != nil {
 		t.Fail()
 	}
-	assert.Equal(t, "Readiness probe not filled in", rule.Name)
+	assert.Equal(t, "Liveness probe not filled in", rule.Name)
 }
 
-func TestPodRuleReadinessProbeFilledIn_FindNonConformingPods(t *testing.T) {
-	rule := PodRuleReadinessProbeFilledIn{}
+func TestPodRuleLivenessProbeFilledIn_FindNonConformingPods(t *testing.T) {
+	rule := PodRuleLivenessProbeFilledIn{}
 	pods := []v1.Pod{
-		newPodWithoutReadinessProbe("default", "name1", "uid1"),
-		newPodWithReadinessProbe("default", "name2", "uid2"),
+		newPodWithoutLivenessProbe("default", "name1", "uid1"),
+		newPodWithLivenessProbe("default", "name2", "uid2"),
 	}
 	result := rule.FindNonConformingPods(pods)
 	assert.Equal(t, 1, len(result.Pods))
 	assert.Equal(t, "name1", result.Pods[0].Name)
 }
 
-func newPodWithoutReadinessProbe(namespace, name string, uid types.UID) v1.Pod {
+func newPodWithoutLivenessProbe(namespace, name string, uid types.UID) v1.Pod {
 	return v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: 	namespace,
@@ -65,9 +65,9 @@ func newPodWithoutReadinessProbe(namespace, name string, uid types.UID) v1.Pod {
 	}
 }
 
-func newPodWithReadinessProbe(namespace, name string, uid types.UID) v1.Pod {
-	pod := newPodWithoutReadinessProbe(namespace, name, uid)
+func newPodWithLivenessProbe(namespace, name string, uid types.UID) v1.Pod {
+	pod := newPodWithoutLivenessProbe(namespace, name, uid)
 
-	pod.Spec.Containers[0].ReadinessProbe = &v1.Probe{}
+	pod.Spec.Containers[0].LivenessProbe = &v1.Probe{}
 	return pod
 }

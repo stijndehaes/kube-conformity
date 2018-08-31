@@ -46,7 +46,7 @@ func (r *PodRuleLabelsFilledIn) UnmarshalYAML(unmarshal func(interface{}) error)
 		return fmt.Errorf("Missing labels for PodRuleLabelsFilledIn")
 	}
 	if r.Name == "" {
-		return fmt.Errorf("Missing name for PodRuleLabelsFilledIn")
+		r.Name = "Missing labels"
 	}
 	return nil
 }

@@ -1,9 +1,8 @@
 package rules
 
 import (
-	"k8s.io/client-go/pkg/api/v1"
 	"github.com/stijndehaes/kube-conformity/filters"
-	"fmt"
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 type PodRuleRequestsFilledIn struct {
@@ -39,7 +38,7 @@ func (r *PodRuleRequestsFilledIn) UnmarshalYAML(unmarshal func(interface{}) erro
 		return err
 	}
 	if r.Name == "" {
-		return fmt.Errorf("Missing name for PodRuleRequestsFilledIn")
+		r.Name = "Pod resource requests are not filled in"
 	}
 	return nil
 }

@@ -51,7 +51,7 @@ func newPodWithRequests(namespace, name string, uid types.UID, requestCpu, reque
 	}
 }
 
-func TestPodRuleRequestsFilledIn_UnmarshalYAML_NameNotFilledIn(t *testing.T) {
+func TestPodRuleRequestsFilledIn_UnmarshalYAML_DefaultName(t *testing.T) {
 	yamlString := `
 filter:
   namespaces: test`
@@ -60,9 +60,10 @@ filter:
 
 	err := yaml.Unmarshal([]byte(yamlString), &rule)
 
-	if err == nil {
+	if err != nil {
 		t.Fail()
 	}
+	assert.Equal(t, "Pod resource requests are not filled in", rule.Name)
 }
 
 func TestPodRuleRequestsFilledIn_UnmarshalYAML(t *testing.T) {
