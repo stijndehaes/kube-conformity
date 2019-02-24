@@ -1,9 +1,9 @@
 package filters
 
 import (
+	appsv1 "k8s.io/api/apps/v1"
+	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/pkg/apis/apps/v1beta1"
 )
 
 type Filter struct {
@@ -30,7 +30,7 @@ func (f Filter) FilterObjects(pods []metav1.Object) []metav1.Object {
 	return filteredPods
 }
 
-func convertPodsToObjects(pods []v1.Pod) []metav1.Object {
+func convertPodsToObjects(pods []apiv1.Pod) []metav1.Object {
 	var objects []metav1.Object
 	for idx := range pods {
 		objects = append(objects, pods[idx].GetObjectMeta())
@@ -38,7 +38,7 @@ func convertPodsToObjects(pods []v1.Pod) []metav1.Object {
 	return objects
 }
 
-func convertDeploymentsToObjects(deployments []v1beta1.Deployment) []metav1.Object {
+func convertDeploymentsToObjects(deployments []appsv1.Deployment) []metav1.Object {
 	var objects []metav1.Object
 	for idx := range deployments {
 		objects = append(objects, deployments[idx].GetObjectMeta())
@@ -46,11 +46,11 @@ func convertDeploymentsToObjects(deployments []v1beta1.Deployment) []metav1.Obje
 	return objects
 }
 
-func (f PodFilter) FilterPods(pods []v1.Pod) []v1.Pod {
+func (f PodFilter) FilterPods(pods []apiv1.Pod) []apiv1.Pod {
 	objects := convertPodsToObjects(pods)
 	filteredObjects := f.FilterObjects(objects)
 	filteredObjects = f.FilterExcludeJobs(filteredObjects)
-	var filteredPods []v1.Pod
+	var filteredPods []apiv1.Pod
 	for _, pod := range pods {
 		for _, object := range filteredObjects {
 			if object.GetUID() == pod.GetUID() {
@@ -61,10 +61,10 @@ func (f PodFilter) FilterPods(pods []v1.Pod) []v1.Pod {
 	return filteredPods
 }
 
-func (f DeploymentFilter) FilterDeployments(deployments []v1beta1.Deployment) []v1beta1.Deployment {
+func (f DeploymentFilter) FilterDeployments(deployments []appsv1.Deployment) []appsv1.Deployment {
 	objects := convertDeploymentsToObjects(deployments)
 	filteredObjects := f.FilterObjects(objects)
-	var filteredDeployments []v1beta1.Deployment
+	var filteredDeployments []appsv1.Deployment
 	for _, deployment := range deployments {
 		for _, object := range filteredObjects {
 			if object.GetUID() == deployment.GetUID() {

@@ -1,18 +1,18 @@
 package rules
 
 import (
-	"k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/pkg/apis/apps/v1beta1"
+	apiv1 "k8s.io/api/core/v1"
+	appsv1 "k8s.io/api/apps/v1"
 )
 
 type PodRuleResult struct {
-	Pods     []v1.Pod
+	Pods     []apiv1.Pod
 	Reason   string
 	RuleName string
 }
 
 type DeploymentRuleResult struct {
-	Deployments []v1beta1.Deployment
+	Deployments []appsv1.Deployment
 	Reason      string
 	RuleName    string
 }

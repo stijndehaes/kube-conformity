@@ -17,6 +17,7 @@ limitations under the License.
 package azure
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -26,8 +27,9 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/golang/glog"
+	"k8s.io/klog"
 
+	"k8s.io/apimachinery/pkg/util/net"
 	restclient "k8s.io/client-go/rest"
 )
 
@@ -48,7 +50,7 @@ const (
 
 func init() {
 	if err := restclient.RegisterAuthProviderPlugin("azure", newAzureAuthProvider); err != nil {
-		glog.Fatalf("Failed to register azure auth plugin: %v", err)
+		klog.Fatalf("Failed to register azure auth plugin: %v", err)
 	}
 }
 
@@ -113,6 +115,8 @@ type azureRoundTripper struct {
 	roundTripper http.RoundTripper
 }
 
+var _ net.RoundTripperWrapper = &azureRoundTripper{}
+
 func (r *azureRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	if len(req.Header.Get(authHeader)) != 0 {
 		return r.roundTripper.RoundTrip(req)
@@ -120,7 +124,7 @@ func (r *azureRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 
 	token, err := r.tokenSource.Token()
 	if err != nil {
-		glog.Errorf("Failed to acquire a token: %v", err)
+		klog.Errorf("Failed to acquire a token: %v", err)
 		return nil, fmt.Errorf("acquiring a token for authorization header: %v", err)
 	}
 
@@ -136,6 +140,8 @@ func (r *azureRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 
 	return r.roundTripper.RoundTrip(req2)
 }
+
+func (r *azureRoundTripper) WrappedRoundTripper() http.RoundTripper { return r.roundTripper }
 
 type azureToken struct {
 	token       adal.Token
@@ -238,9 +244,9 @@ func (ts *azureTokenSource) retrieveTokenFromCfg() (*azureToken, error) {
 		token: adal.Token{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
-			ExpiresIn:    expiresIn,
-			ExpiresOn:    expiresOn,
-			NotBefore:    expiresOn,
+			ExpiresIn:    json.Number(expiresIn),
+			ExpiresOn:    json.Number(expiresOn),
+			NotBefore:    json.Number(expiresOn),
 			Resource:     fmt.Sprintf("spn:%s", apiserverID),
 			Type:         tokenType,
 		},
@@ -257,8 +263,8 @@ func (ts *azureTokenSource) storeTokenInCfg(token *azureToken) error {
 	newCfg[cfgClientID] = token.clientID
 	newCfg[cfgTenantID] = token.tenantID
 	newCfg[cfgApiserverID] = token.apiserverID
-	newCfg[cfgExpiresIn] = token.token.ExpiresIn
-	newCfg[cfgExpiresOn] = token.token.ExpiresOn
+	newCfg[cfgExpiresIn] = string(token.token.ExpiresIn)
+	newCfg[cfgExpiresOn] = string(token.token.ExpiresOn)
 
 	err := ts.persister.Persist(newCfg)
 	if err != nil {
@@ -292,7 +298,7 @@ func (ts *azureTokenSource) refreshToken(token *azureToken) (*azureToken, error)
 	}
 
 	return &azureToken{
-		token:       spt.Token,
+		token:       spt.Token(),
 		clientID:    token.clientID,
 		tenantID:    token.tenantID,
 		apiserverID: token.apiserverID,

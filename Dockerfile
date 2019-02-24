@@ -1,5 +1,5 @@
 # builder image
-FROM golang:1.9-alpine as builder
+FROM golang:1.11-alpine as builder
 
 RUN apk -U add git
 WORKDIR /go/src/github.com/stijndehaes/kube-conformity

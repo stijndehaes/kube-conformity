@@ -5,7 +5,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/api/core/v1"
 	"fmt"
 	"github.com/stijndehaes/kube-conformity/config"
 	"github.com/stijndehaes/kube-conformity/rules"
@@ -78,7 +78,7 @@ func (k *KubeConformity) EvaluatePodRules() []rules.PodRuleResult {
 }
 
 func (k *KubeConformity) EvaluateDeploymentRules() []rules.DeploymentRuleResult {
-	deploymentList, err := k.Client.AppsV1beta1().Deployments(v1.NamespaceAll).List(metav1.ListOptions{})
+	deploymentList, err := k.Client.AppsV1().Deployments(v1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
 		k.Logger.Fatal(err)
 	}
