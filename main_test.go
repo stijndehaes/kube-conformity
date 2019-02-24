@@ -41,6 +41,7 @@ func TestConstructConfig_InvalidLocation(t *testing.T) {
 
 func Test_configurePrometheus(t *testing.T) {
 	config, _ := ConstructConfig()
+	PrometheusAddr = ":8000"
 	configurePrometheus(config)
 }
 
