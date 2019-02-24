@@ -16,11 +16,10 @@ RUN go build -o /bin/kube-conformity -v \
 FROM alpine:3.6
 MAINTAINER Stijn De Haes <stijndehaes@gmail.com>
 
-RUN apk --no-cache add --update openssl ca-certificates
+RUN apk --no-cache add openssl ca-certificates dumb-init
 COPY mailtemplate.html /etc/kube-conformity/mailtemplate.html
 COPY config.yaml /etc/kube-conformity/config.yaml
 COPY --from=builder /bin/kube-conformity /etc/kube-conformity/kube-conformity
-WORKDIR /etc/kube-conformity
 
 USER 65534
-ENTRYPOINT ["./kube-conformity"]
+ENTRYPOINT ["dumb-init", "--", "/etc/kube-conformity/kube-conformity"]
