@@ -64,6 +64,7 @@ func defaultPage(config config.Config) func (w http.ResponseWriter, r *http.Requ
 }
 
 func configurePrometheus(config config.Config) {
+	log.Info("Prometheus enabled will run it on addr: ", PrometheusAddr)
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/healthz",
 		func(w http.ResponseWriter, r *http.Request) {

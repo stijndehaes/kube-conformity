@@ -38,5 +38,6 @@ func TestConstructConfig_InvalidLocation(t *testing.T) {
 }
 
 func Test_configurePrometheus(t *testing.T) {
-	configurePrometheus()
+	config, _ := ConstructConfig()
+	configurePrometheus(config)
 }
