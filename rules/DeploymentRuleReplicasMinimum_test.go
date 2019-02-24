@@ -1,7 +1,7 @@
 package rules
 
 import (
-	"k8s.io/client-go/pkg/apis/apps/v1beta1"
+	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 	"gopkg.in/yaml.v2"
@@ -12,7 +12,7 @@ import (
 func TestDeploymentRuleReplicas_FindNonConformingDeployment(t *testing.T) {
 	deployment1 := newDeploymentWithReplicas("default", "one", "uid1", int32(1))
 	deployment2 := newDeploymentWithReplicas("default", "two", "uid2", int32(2))
-	deployments := []v1beta1.Deployment{deployment1, deployment2}
+	deployments := []appsv1.Deployment{deployment1, deployment2}
 
 	rule := DeploymentRuleReplicasMinimum{
 		MinimumReplicas: 2,
@@ -64,14 +64,14 @@ name: minimum replicas 2`
 	}
 }
 
-func newDeploymentWithReplicas(namespace, name string, uid types.UID, replicas int32) v1beta1.Deployment {
-	return v1beta1.Deployment{
+func newDeploymentWithReplicas(namespace, name string, uid types.UID, replicas int32) appsv1.Deployment {
+	return appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
 			UID:       uid,
 		},
-		Spec: v1beta1.DeploymentSpec{
+		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
 		},
 	}

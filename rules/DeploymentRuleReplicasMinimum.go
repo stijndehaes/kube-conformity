@@ -2,7 +2,7 @@ package rules
 
 import (
 	"fmt"
-	"k8s.io/client-go/pkg/apis/apps/v1beta1"
+	appsv1 "k8s.io/api/apps/v1"
 	"github.com/stijndehaes/kube-conformity/filters"
 )
 
@@ -12,9 +12,9 @@ type DeploymentRuleReplicasMinimum struct {
 	Filter          filters.DeploymentFilter `yaml:"filter"`
 }
 
-func (deploymentRuleReplicasMinimum DeploymentRuleReplicasMinimum) FindNonConformingDeployment(deployments []v1beta1.Deployment) DeploymentRuleResult {
+func (deploymentRuleReplicasMinimum DeploymentRuleReplicasMinimum) FindNonConformingDeployment(deployments []appsv1.Deployment) DeploymentRuleResult {
 	filteredDeployments := deploymentRuleReplicasMinimum.Filter.FilterDeployments(deployments)
-	var nonConformingDeployments  []v1beta1.Deployment
+	var nonConformingDeployments  []appsv1.Deployment
 	for _, deployment := range filteredDeployments {
 		if *deployment.Spec.Replicas < deploymentRuleReplicasMinimum.MinimumReplicas {
 			nonConformingDeployments = append(nonConformingDeployments, deployment)

@@ -5,12 +5,12 @@ import (
 	"log"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/client-go/kubernetes/fake"
-	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/api/core/v1"
 	"bytes"
 	"github.com/stijndehaes/kube-conformity/config"
 	"github.com/stijndehaes/kube-conformity/rules"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/apis/apps/v1beta1"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -42,7 +42,7 @@ func TestKubeConformity_EvaluateDeploymentRulesRules(t *testing.T) {
 			MinimumReplicas: 2,
 		}},
 	}
-	deployments := []v1beta1.Deployment{
+	deployments := []appsv1.Deployment{
 		newDeployment("default", "foo", "uid1", 1),
 		newDeployment("testing", "bar", "uid2", 2),
 	}
@@ -73,7 +73,7 @@ func TestKubeConformity_LogNonConforming_Deployments(t *testing.T) {
 			MinimumReplicas: 2,
 		}},
 	}
-	deployments := []v1beta1.Deployment{
+	deployments := []appsv1.Deployment{
 		newDeployment("default", "foo", "uid1", 1),
 		newDeployment("testing", "bar", "uid2", 2),
 	}
@@ -83,7 +83,7 @@ func TestKubeConformity_LogNonConforming_Deployments(t *testing.T) {
 	assert.Equal(t, "rule name: \nrule reason: Replicas below the minimum: 2\nfoo_default\n", logOutput.String())
 }
 
-func setup(t *testing.T, pods []v1.Pod, deployments []v1beta1.Deployment, kubeConfig config.Config) *KubeConformity {
+func setup(t *testing.T, pods []v1.Pod, deployments []appsv1.Deployment, kubeConfig config.Config) *KubeConformity {
 	client := fake.NewSimpleClientset()
 
 	for _, pod := range pods {
@@ -92,7 +92,7 @@ func setup(t *testing.T, pods []v1.Pod, deployments []v1beta1.Deployment, kubeCo
 		}
 	}
 	for _, deployment := range deployments {
-		if _, err := client.AppsV1beta1().Deployments(deployment.Namespace).Create(&deployment); err != nil {
+		if _, err := client.AppsV1().Deployments(deployment.Namespace).Create(&deployment); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -116,14 +116,14 @@ func newPodWithLabels(namespace, name string, uid types.UID, labels []string) v1
 	}
 }
 
-func newDeployment(namespace, name string, uid types.UID, replicas int32) v1beta1.Deployment {
-	return v1beta1.Deployment{
+func newDeployment(namespace, name string, uid types.UID, replicas int32) appsv1.Deployment {
+	return appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
 			UID:       uid,
 		},
-		Spec:v1beta1.DeploymentSpec{
+		Spec:appsv1.DeploymentSpec{
 			Replicas: &replicas,
 		},
 	}

@@ -5,8 +5,8 @@ import (
 	"gopkg.in/yaml.v2"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/apis/apps/v1beta1"
-	"k8s.io/client-go/pkg/api/v1"
+	apiv1 "k8s.io/api/core/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -71,7 +71,7 @@ exclude_jobs: true`
 func TestDeploymentFilter_FilterDeployments(t *testing.T) {
 	filter := DeploymentFilter{}
 
-	deployments := []v1beta1.Deployment{
+	deployments := []appsv1.Deployment{
 		newDeployment("default", "name1", "uid1"),
 	}
 
@@ -82,7 +82,7 @@ func TestDeploymentFilter_FilterDeployments(t *testing.T) {
 func TestPodFilter_FilterPods(t *testing.T) {
 	filter := PodFilter{}
 
-	pods := []v1.Pod{
+	pods := []apiv1.Pod{
 		newPod("default", "name1", "uid1"),
 	}
 
@@ -95,7 +95,7 @@ func TestFilter_FilterIncludeNamespace(t *testing.T) {
 		IncludeNamespaces: []string{"default"},
 	}
 
-	pods :=[]v1.Pod{
+	pods :=[]apiv1.Pod{
 		newPod("default", "name1", "uid1"),
 		newPod("kube-system", "name2", "uid2"),
 	}
@@ -112,7 +112,7 @@ func TestFilter_FilterIncludeNamespace_Empty(t *testing.T) {
 		IncludeNamespaces: []string{},
 	}
 
-	objects := convertPodsToObjects([]v1.Pod{newPod("default", "name", "uid1")})
+	objects := convertPodsToObjects([]apiv1.Pod{newPod("default", "name", "uid1")})
 
 	filteredObjects := filter.FilterIncludeNamespace(objects)
 	assert.Len(t, filteredObjects, 1)
@@ -123,7 +123,7 @@ func TestFilter_FilterExcludeNamespace(t *testing.T) {
 		ExcludeNamespaces: []string{"default"},
 	}
 
-	pods :=[]v1.Pod{
+	pods :=[]apiv1.Pod{
 		newPod("default", "name1", "uid1"),
 		newPod("kube-system", "name2", "uid2"),
 	}
@@ -140,7 +140,7 @@ func TestFilter_FilterExcludeNamespace_Empty(t *testing.T) {
 		ExcludeNamespaces: []string{},
 	}
 
-	objects := convertPodsToObjects([]v1.Pod{newPod("default", "name", "uid1")})
+	objects := convertPodsToObjects([]apiv1.Pod{newPod("default", "name", "uid1")})
 
 	filteredObjects := filter.FilterExcludeNamespace(objects)
 	assert.Len(t, filteredObjects, 1)
@@ -151,7 +151,7 @@ func TestFilter_FilterExcludeAnnotations(t *testing.T) {
 		ExcludeAnnotations: map[string]string{"testkey1": "testvalue1"},
 	}
 
-	pods := []v1.Pod{
+	pods := []apiv1.Pod{
 		newPodWithAnnotations("default", "name1", "uid1", map[string]string{"testkey1": "testvalue1"}),
 		newPodWithAnnotations("default", "name2", "uid2", map[string]string{"testkey1": "testvalue2"}),
 		newPodWithAnnotations("default", "name3", "uid3", map[string]string{"testkey2": "testvalue1"}),
@@ -171,7 +171,7 @@ func TestFilter_FilterExcludeAnnotations_Empty(t *testing.T) {
 		ExcludeAnnotations: map[string]string{},
 	}
 
-	objects := convertPodsToObjects([]v1.Pod{newPod("default", "name", "uid1")})
+	objects := convertPodsToObjects([]apiv1.Pod{newPod("default", "name", "uid1")})
 
 	filteredObjects := filter.FilterExcludeAnnotations(objects)
 	assert.Len(t, filteredObjects, 1)
@@ -182,7 +182,7 @@ func TestFilter_FilterExcludeLabels(t *testing.T) {
 		ExcludeLabels: map[string]string{"testkey1": "testvalue1"},
 	}
 
-	pods := []v1.Pod{
+	pods := []apiv1.Pod{
 		newPodWithLabels("default", "name1", "uid1", map[string]string{"testkey1": "testvalue1"}),
 		newPodWithLabels("default", "name2", "uid2", map[string]string{"testkey1": "testvalue2"}),
 		newPodWithLabels("default", "name3", "uid3", map[string]string{"testkey2": "testvalue1"}),
@@ -202,14 +202,14 @@ func TestFilter_FilterExcludeLabels_Empty(t *testing.T) {
 		ExcludeLabels: map[string]string{},
 	}
 
-	objects := convertPodsToObjects([]v1.Pod{newPod("default", "name", "uid1")})
+	objects := convertPodsToObjects([]apiv1.Pod{newPod("default", "name", "uid1")})
 
 	filteredObjects := filter.FilterExcludeLabels(objects)
 	assert.Len(t, filteredObjects, 1)
 }
 
 func Test_convertPodsToObjects(t *testing.T) {
-	pods :=[]v1.Pod{
+	pods :=[]apiv1.Pod{
 		newPod("default", "name1", "uid1"),
 		newPod("kube-system", "name2", "uid2"),
 	}
@@ -222,7 +222,7 @@ func Test_convertPodsToObjects(t *testing.T) {
 }
 
 func Test_convertDeploymentsToObjects(t *testing.T) {
-	deployments :=[]v1beta1.Deployment{
+	deployments :=[]appsv1.Deployment{
 		newDeployment("default", "name1", "uid1"),
 		newDeployment("kube-system", "name2", "uid2"),
 	}
@@ -235,8 +235,8 @@ func Test_convertDeploymentsToObjects(t *testing.T) {
 }
 
 
-func newDeployment(namespace, name string, uid types.UID) v1beta1.Deployment {
-	return v1beta1.Deployment{
+func newDeployment(namespace, name string, uid types.UID) appsv1.Deployment {
+	return appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
@@ -245,8 +245,8 @@ func newDeployment(namespace, name string, uid types.UID) v1beta1.Deployment {
 	}
 }
 
-func newPod(namespace, name string, uid types.UID) v1.Pod {
-	return v1.Pod{
+func newPod(namespace, name string, uid types.UID) apiv1.Pod {
+	return apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
@@ -255,8 +255,8 @@ func newPod(namespace, name string, uid types.UID) v1.Pod {
 	}
 }
 
-func newPodWithLabels(namespace, name string, uid types.UID, labels map[string]string) v1.Pod {
-	return v1.Pod{
+func newPodWithLabels(namespace, name string, uid types.UID, labels map[string]string) apiv1.Pod {
+	return apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
@@ -266,8 +266,8 @@ func newPodWithLabels(namespace, name string, uid types.UID, labels map[string]s
 	}
 }
 
-func newPodWithAnnotations(namespace, name string, uid types.UID, annotations map[string]string) v1.Pod {
-	return v1.Pod{
+func newPodWithAnnotations(namespace, name string, uid types.UID, annotations map[string]string) apiv1.Pod {
+	return apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   namespace,
 			Name:        name,
