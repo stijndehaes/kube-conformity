@@ -36,3 +36,7 @@ func TestConstructConfig_InvalidLocation(t *testing.T) {
 	_, err := ConstructConfig()
 	assert.NotNil(t, err)
 }
+
+func Test_configurePrometheus(t *testing.T) {
+	configurePrometheus()
+}
