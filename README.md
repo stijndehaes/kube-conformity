@@ -89,10 +89,10 @@ limits_filled_in_rules:
 email_config:
   enabled: true
   to: test@gmail.com
-  from: no-reply@kube-conformity.com
+  from: kubeconformity
   host: 127.0.0.1
   port: 24
-  subject: kube-conformity
+  subject: kubeconformity
   auth_username: username
   auth_password: password
   auth_identity: identity

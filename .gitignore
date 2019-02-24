@@ -1,2 +1,4 @@
 .idea
 kube-conformity
+coverage.out
+vendor
