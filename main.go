@@ -42,7 +42,7 @@ func init() {
 	kingpin.Flag("prometheus-addr", "Prometheus metrics addr").Default(":8000").StringVar(&PrometheusAddr)
 }
 
-func defaultPage(config config.Config) func (w http.ResponseWriter, r *http.Request) {
+func defaultPageHandler(config config.Config) func (w http.ResponseWriter, r *http.Request) {
 	configByte, err := yaml.Marshal(&config)
 	if err != nil {
 		log.Fatal(err)
@@ -63,14 +63,15 @@ func defaultPage(config config.Config) func (w http.ResponseWriter, r *http.Requ
 	}
 }
 
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "OK")
+}
+
 func configurePrometheus(config config.Config) {
 	log.Info("Prometheus enabled will run it on addr: ", PrometheusAddr)
 	http.Handle("/metrics", promhttp.Handler())
-	http.HandleFunc("/healthz",
-		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprintln(w, "OK")
-		})
-	http.HandleFunc("/", defaultPage(config))
+	http.HandleFunc("/healthz", healthHandler)
+	http.HandleFunc("/", defaultPageHandler(config))
 	go func() {
 		if err := http.ListenAndServe(PrometheusAddr, nil); err != nil {
 			log.WithFields(log.Fields{

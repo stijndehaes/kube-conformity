@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"github.com/stretchr/testify/assert"
 	log "github.com/sirupsen/logrus"
@@ -40,4 +42,34 @@ func TestConstructConfig_InvalidLocation(t *testing.T) {
 func Test_configurePrometheus(t *testing.T) {
 	config, _ := ConstructConfig()
 	configurePrometheus(config)
+}
+
+func Test_defaultPageHandler(t *testing.T) {
+	config, _ := ConstructConfig()
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(defaultPageHandler(config))
+	handler.ServeHTTP(rr, req)
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+}
+
+
+func Test_healthHandler(t *testing.T) {
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(healthHandler)
+	handler.ServeHTTP(rr, req)
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
 }
