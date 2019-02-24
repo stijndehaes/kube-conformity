@@ -22,32 +22,21 @@ import (
 )
 
 var (
-	master         string
-	kubeConfig     string
-	debug          bool
-	version        string
-	configLocation string
-	jsonLogging    bool
-	prometheusEnabled bool
-	PrometheusAddr string
+	master            = *kingpin.Flag("master", "The address of the Kubernetes cluster to target").String()
+	kubeConfig        = *kingpin.Flag("kube-config", "Path to a kubeConfig file").String()
+	debug             = *kingpin.Flag("debug", "Enable debug logging.").Bool()
+	configLocation    = *kingpin.Flag("config-location", "The location of the config.yaml").Default("config.yaml").String()
+	jsonLogging       = *kingpin.Flag("json-logging", "Enable json logging.").Bool()
+	prometheusEnabled = *kingpin.Flag("prometheus-enabled", "Enable prometheus metrics").Default("true").Bool()
+	PrometheusAddr    = *kingpin.Flag("prometheus-addr", "Prometheus metrics addr").Default(":8000").String()
 )
 
-func init() {
-	kingpin.Flag("master", "The address of the Kubernetes cluster to target").StringVar(&master)
-	kingpin.Flag("kube-config", "Path to a kubeConfig file").StringVar(&kubeConfig)
-	kingpin.Flag("debug", "Enable debug logging.").BoolVar(&debug)
-	kingpin.Flag("json-logging", "Enable json logging.").BoolVar(&jsonLogging)
-	kingpin.Flag("config-location", "The location of the config.yaml").Default("config.yaml").StringVar(&configLocation)
-	kingpin.Flag("prometheus-enabled", "Enable prometheus metrics").Default("true").BoolVar(&prometheusEnabled)
-	kingpin.Flag("prometheus-addr", "Prometheus metrics addr").Default(":8000").StringVar(&PrometheusAddr)
-}
-
-func defaultPageHandler(config config.Config) func (w http.ResponseWriter, r *http.Request) {
+func defaultPageHandler(config config.Config) func(w http.ResponseWriter, r *http.Request) {
 	configByte, err := yaml.Marshal(&config)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return func (w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
 					<head><title>Kube conformity</title></head>
 					<body>
@@ -82,7 +71,6 @@ func configurePrometheus(config config.Config) {
 }
 
 func main() {
-	kingpin.Version(version)
 	kingpin.Parse()
 	client, err := newClient()
 	if err != nil {
