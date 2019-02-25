@@ -1,9 +1,12 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kube-conformity
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: kube-conformity
   template:
     metadata:
       labels:
@@ -18,6 +21,17 @@ spec:
         volumeMounts:
         - name: config-volume
           mountPath: /etc/config
+        ports:
+          - containerPort: 8000
+            name: web
+        readinessProbe:
+          httpGet:
+            port: web
+            path: /healthz
+        livenessProbe:
+          httpGet:
+            port: web
+            path: /healthz
       volumes:
       - name: config-volume
         configMap:

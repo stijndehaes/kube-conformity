@@ -22,16 +22,16 @@ var (
 )
 
 type EmailConfig struct {
-	Enabled      bool   `yaml:"enabled,omitempty"`
-	To           string `yaml:"to,omitempty"`
-	From         string `yaml:"from,omitempty"`
-	Host         string `yaml:"host,omitempty"`
+	Enabled      bool   `yaml:"enabled"`
+	To           string `yaml:"to"`
+	From         string `yaml:"from"`
+	Host         string `yaml:"host"`
 	Port         int    `yaml:"port"`
 	Subject      string `yaml:"subject"`
-	AuthUsername string `yaml:"auth_username,omitempty"`
-	AuthPassword string `yaml:"auth_password,omitempty"`
-	AuthIdentity string `yaml:"auth_identity,omitempty"`
-	Template     string `yaml:"template,omitempty"`
+	AuthUsername string `yaml:"auth_username"`
+	AuthPassword string `yaml:"auth_password"`
+	AuthIdentity string `yaml:"auth_identity"`
+	Template     string `yaml:"template"`
 }
 
 func (emailConfig *EmailConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {

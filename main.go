@@ -1,11 +1,16 @@
 package main
 
 import (
+	"fmt"
+	"github.com/stijndehaes/kube-conformity/config"
 	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"net/http"
 
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -14,28 +19,58 @@ import (
 	"github.com/stijndehaes/kube-conformity/kubeconformity"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"github.com/stijndehaes/kube-conformity/config"
 )
 
 var (
-	master         string
-	kubeConfig     string
-	debug          bool
-	version        string
-	configLocation string
-	jsonLogging    bool
+	master            = *kingpin.Flag("master", "The address of the Kubernetes cluster to target").String()
+	kubeConfig        = *kingpin.Flag("kube-config", "Path to a kubeConfig file").String()
+	debug             = *kingpin.Flag("debug", "Enable debug logging.").Bool()
+	configLocation    = *kingpin.Flag("config-location", "The location of the config.yaml").Default("config.yaml").String()
+	jsonLogging       = *kingpin.Flag("json-logging", "Enable json logging.").Bool()
+	prometheusEnabled = *kingpin.Flag("prometheus-enabled", "Enable prometheus metrics").Default("true").Bool()
+	PrometheusAddr    = *kingpin.Flag("prometheus-addr", "Prometheus metrics addr").Default(":8000").String()
 )
 
-func init() {
-	kingpin.Flag("master", "The address of the Kubernetes cluster to target").StringVar(&master)
-	kingpin.Flag("kube-config", "Path to a kubeConfig file").StringVar(&kubeConfig)
-	kingpin.Flag("debug", "Enable debug logging.").BoolVar(&debug)
-	kingpin.Flag("json-logging", "Enable json logging.").BoolVar(&jsonLogging)
-	kingpin.Flag("config-location", "The location of the config.yaml").Default("config.yaml").StringVar(&configLocation)
+func defaultPageHandler(config config.Config) func(w http.ResponseWriter, r *http.Request) {
+	configByte, err := yaml.Marshal(&config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`<html>
+					<head><title>Kube conformity</title></head>
+					<body>
+					<h1>Kube conformity</h1>
+					<p><a href="/metrics">Metrics</a></p>
+					<p><a href="/healthz">Health Check</a></p>
+					<h2>Configuration</h2>
+					<p style='white-space: pre-wrap;'>`))
+		w.Write(configByte)
+		w.Write([]byte(`</p>
+						</body>
+					    </html>`))
+	}
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "OK")
+}
+
+func configurePrometheus(config config.Config) {
+	log.Info("Prometheus enabled will run it on addr: ", PrometheusAddr)
+	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/healthz", healthHandler)
+	http.HandleFunc("/", defaultPageHandler(config))
+	go func() {
+		if err := http.ListenAndServe(PrometheusAddr, nil); err != nil {
+			log.WithFields(log.Fields{
+				"err": err,
+			}).Fatal("failed to start HTTP server")
+		}
+	}()
 }
 
 func main() {
-	kingpin.Version(version)
 	kingpin.Parse()
 	client, err := newClient()
 	if err != nil {
@@ -45,6 +80,10 @@ func main() {
 	config, err := ConstructConfig()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if prometheusEnabled {
+		configurePrometheus(config)
 	}
 
 	kubeConformity := kubeconformity.New(
