@@ -11,15 +11,12 @@ RUN go test -v ./...
 ENV GOARCH amd64
 RUN go build -o /bin/kube-conformity -v \
   -ldflags "-X main.version=$(git describe --tags --always --dirty) -w -s"
+RUN mkdir /tmp/result/ && cp /bin/kube-conformity /tmp/result/kube-conformity
+COPY mailtemplate.html /tmp/result/mailtemplate.html
+COPY config.yaml /tmp/result/config.yaml
 
 # final image
-FROM alpine:3.6
+FROM gcr.io/distroless/base
 MAINTAINER Stijn De Haes <stijndehaes@gmail.com>
-
-RUN apk --no-cache add openssl ca-certificates dumb-init
-COPY mailtemplate.html /etc/kube-conformity/mailtemplate.html
-COPY config.yaml /etc/kube-conformity/config.yaml
-COPY --from=builder /bin/kube-conformity /etc/kube-conformity/kube-conformity
-
-USER 65534
-ENTRYPOINT ["dumb-init", "--", "/etc/kube-conformity/kube-conformity"]
+COPY --from=builder /tmp/result/ /
+CMD ["/kube-conformity"]
