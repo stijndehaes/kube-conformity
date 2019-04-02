@@ -75,8 +75,19 @@ func TestDeploymentFilter_FilterDeployments(t *testing.T) {
 		newDeployment("default", "name1", "uid1"),
 	}
 
-	filteredPods := filter.FilterDeployments(deployments)
-	assert.Len(t, filteredPods, 1)
+	filteredDeployments := filter.FilterDeployments(deployments)
+	assert.Len(t, filteredDeployments, 1)
+}
+
+func TestDeploymentFilter_FilterStatefulset(t *testing.T) {
+	filter := StatefulsetFilter{}
+
+	statefulSets := []appsv1.StatefulSet{
+		newStatefulset("default", "name1", "uid1"),
+	}
+
+	filteredStatefulSets := filter.FilterStatefulSets(statefulSets)
+	assert.Len(t, filteredStatefulSets, 1)
 }
 
 func TestPodFilter_FilterPods(t *testing.T) {
@@ -234,9 +245,32 @@ func Test_convertDeploymentsToObjects(t *testing.T) {
 	assert.NotEqual(t, objects[0], objects[1])
 }
 
+func Test_convertStatefulsetToObjects(t *testing.T) {
+	deployments :=[]appsv1.StatefulSet{
+		newStatefulset("default", "name1", "uid1"),
+		newStatefulset("kube-system", "name2", "uid2"),
+	}
+	objects := convertStatefulsetToObjects(deployments)
+
+	assert.Len(t, objects, 2)
+	assert.Equal(t, objects[0], deployments[0].GetObjectMeta())
+	assert.Equal(t, objects[1], deployments[1].GetObjectMeta())
+	assert.NotEqual(t, objects[0], objects[1])
+}
+
 
 func newDeployment(namespace, name string, uid types.UID) appsv1.Deployment {
 	return appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      name,
+			UID: uid,
+		},
+	}
+}
+
+func newStatefulset(namespace, name string, uid types.UID) appsv1.StatefulSet {
+	return appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,

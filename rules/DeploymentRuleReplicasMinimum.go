@@ -23,7 +23,7 @@ func (deploymentRuleReplicasMinimum DeploymentRuleReplicasMinimum) FindNonConfor
 
 	return DeploymentRuleResult{
 		Deployments: nonConformingDeployments,
-		Reason:      fmt.Sprintf("Replicas below the minimum: %v", deploymentRuleReplicasMinimum.MinimumReplicas),
+		Reason:      fmt.Sprintf("Deployment replicas below the minimum: %v", deploymentRuleReplicasMinimum.MinimumReplicas),
 		RuleName:    deploymentRuleReplicasMinimum.Name,
 	}
 }
@@ -34,10 +34,10 @@ func (deploymentRuleReplicasMinimum *DeploymentRuleReplicasMinimum) UnmarshalYAM
 		return err
 	}
 	if deploymentRuleReplicasMinimum.MinimumReplicas == 0 {
-		return fmt.Errorf("Missing minimum replicas")
+		return fmt.Errorf(",issing minimum replicas")
 	}
 	if deploymentRuleReplicasMinimum.Name == "" {
-		return fmt.Errorf("Missing name for DeploymentRuleReplicasMinimum")
+		return fmt.Errorf("missing name for DeploymentRuleReplicasMinimum")
 	}
 	return nil
 }

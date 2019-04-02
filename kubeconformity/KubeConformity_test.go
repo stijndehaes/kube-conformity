@@ -31,7 +31,7 @@ func TestKubeConformity_EvaluatePodRules(t *testing.T) {
 		newPodWithLabels("default", "foo", "uid1", []string{}),
 		newPodWithLabels("testing", "bar", "uid2", []string{"app"}),
 	}
-	kubeConformity := setup(t, pods, nil, kubeConfig)
+	kubeConformity := setup(t, pods, nil, nil, kubeConfig)
 	conformityResult := kubeConformity.EvaluatePodRules()
 	assert.Equal(t, 3, len(conformityResult))
 }
@@ -46,8 +46,23 @@ func TestKubeConformity_EvaluateDeploymentRulesRules(t *testing.T) {
 		newDeployment("default", "foo", "uid1", 1),
 		newDeployment("testing", "bar", "uid2", 2),
 	}
-	kubeConformity := setup(t, nil, deployments, kubeConfig)
+	kubeConformity := setup(t, nil, deployments, nil, kubeConfig)
 	conformityResult := kubeConformity.EvaluateDeploymentRules()
+	assert.Equal(t, 1, len(conformityResult))
+}
+
+func TestKubeConformity_EvaluateStatefulSetRulesRules(t *testing.T) {
+	kubeConfig := config.Config{
+		StatefulSetRuleReplicasMinimum: []rules.StatefulSetRuleReplicasMinimum{{
+			MinimumReplicas: 2,
+		}},
+	}
+	statefulSets := []appsv1.StatefulSet{
+		newStatefulSet("default", "foo", "uid1", 1),
+		newStatefulSet("testing", "bar", "uid2", 2),
+	}
+	kubeConformity := setup(t, nil, nil, statefulSets, kubeConfig)
+	conformityResult := kubeConformity.EvaluateStatefulSetRules()
 	assert.Equal(t, 1, len(conformityResult))
 }
 
@@ -61,10 +76,10 @@ func TestKubeConformity_LogNonConforming_Pods(t *testing.T) {
 		newPodWithLabels("default", "foo", "uid1", []string{}),
 		newPodWithLabels("testing", "bar", "uid2", []string{"app"}),
 	}
-	kubeConformity := setup(t, pods, nil, kubeConfig)
+	kubeConformity := setup(t, pods, nil, nil, kubeConfig)
 	kubeConformity.LogNonConforming()
 	logOutput.String()
-	assert.Equal(t, "rule name: \nrule reason: Labels: [app] are not filled in\nfoo_default\n", logOutput.String())
+	assert.Equal(t, "Presenting Pod rule results\nrule name: \nrule reason: Labels: [app] are not filled in\nfoo_default\n", logOutput.String())
 }
 
 func TestKubeConformity_LogNonConforming_Deployments(t *testing.T) {
@@ -77,13 +92,29 @@ func TestKubeConformity_LogNonConforming_Deployments(t *testing.T) {
 		newDeployment("default", "foo", "uid1", 1),
 		newDeployment("testing", "bar", "uid2", 2),
 	}
-	kubeConformity := setup(t, nil, deployments, kubeConfig)
+	kubeConformity := setup(t, nil, deployments, nil, kubeConfig)
 	kubeConformity.LogNonConforming()
 	logOutput.String()
-	assert.Equal(t, "rule name: \nrule reason: Replicas below the minimum: 2\nfoo_default\n", logOutput.String())
+	assert.Equal(t, "Presenting Deployment rule results\nrule name: \nrule reason: Deployment replicas below the minimum: 2\nfoo_default\n", logOutput.String())
 }
 
-func setup(t *testing.T, pods []v1.Pod, deployments []appsv1.Deployment, kubeConfig config.Config) *KubeConformity {
+func TestKubeConformity_LogNonConforming_StatefulSets(t *testing.T) {
+	kubeConfig := config.Config{
+		StatefulSetRuleReplicasMinimum: []rules.StatefulSetRuleReplicasMinimum{{
+			MinimumReplicas: 2,
+		}},
+	}
+	statefulSets := []appsv1.StatefulSet{
+		newStatefulSet("default", "foo", "uid1", 1),
+		newStatefulSet("testing", "bar", "uid2", 2),
+	}
+	kubeConformity := setup(t, nil, nil, statefulSets, kubeConfig)
+	kubeConformity.LogNonConforming()
+	logOutput.String()
+	assert.Equal(t, "Presenting StatefulSet rule results\nrule name: \nrule reason: StatefulSet replicas below the minimum: 2\nfoo_default\n", logOutput.String())
+}
+
+func setup(t *testing.T, pods []v1.Pod, deployments []appsv1.Deployment, statefulSets []appsv1.StatefulSet, kubeConfig config.Config) *KubeConformity {
 	client := fake.NewSimpleClientset()
 
 	for _, pod := range pods {
@@ -93,6 +124,11 @@ func setup(t *testing.T, pods []v1.Pod, deployments []appsv1.Deployment, kubeCon
 	}
 	for _, deployment := range deployments {
 		if _, err := client.AppsV1().Deployments(deployment.Namespace).Create(&deployment); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, statefulSet := range statefulSets {
+		if _, err := client.AppsV1().StatefulSets(statefulSet.Namespace).Create(&statefulSet); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -124,6 +160,19 @@ func newDeployment(namespace, name string, uid types.UID, replicas int32) appsv1
 			UID:       uid,
 		},
 		Spec:appsv1.DeploymentSpec{
+			Replicas: &replicas,
+		},
+	}
+}
+
+func newStatefulSet(namespace, name string, uid types.UID, replicas int32) appsv1.StatefulSet {
+	return appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      name,
+			UID:       uid,
+		},
+		Spec:appsv1.StatefulSetSpec{
 			Replicas: &replicas,
 		},
 	}
