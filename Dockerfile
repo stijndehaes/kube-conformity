@@ -1,5 +1,5 @@
 # builder image
-FROM golang:1.12-alpine3.8 as builder
+FROM golang:1.12-alpine3.9 as builder
 
 ENV CGO_ENABLED 0
 RUN apk --no-cache add git
