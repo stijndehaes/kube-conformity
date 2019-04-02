@@ -5,20 +5,27 @@
 [![Docker Hub](https://img.shields.io/docker/build/sdehaes/kube-conformity.svg)](https://hub.docker.com/r/sdehaes/kube-conformity/)
 [![GitHub release](https://img.shields.io/github/release/stijndehaes/kube-conformity.svg)](https://github.com/stijndehaes/kube-conformity/releases)
 
-This project looks for pods that in your kubernetes cluster that are breaking conformity rules.
+This project looks for objects that in your kubernetes cluster that are breaking conformity rules.
 An example on how to run this project on kubernetes can be found in the examples folder.
 
 # Rules
 
-At this moment there are three rules defined on pods:
+At the moment rules on 3 resources are supported.
+
+## Pod rules
 
 * Labels filled in: Takes a list of labels and check if pods have these labels defined
 * Resource requests filled in: Checks all pods if they have resource requests filled in
 * Limits requests filled in: Checks all pods if they have limits requests filled in
 
-And one rule defined on deployments:
+## Deployment rules
 
-* Deployment minimum replicas: Checks that every deployment has a minimum of a certain number of replicas
+* Deployment minimum replicas: Checks that every Deployment has a minimum of a certain number of replicas
+
+## StatefulSet Rules 
+
+* StatefulSet minimum replicas: Checks that every StatefulSet has a minimum of a certain number of replicas
+
 
 The rules are configured using a yaml config. An example of this config is:
 
@@ -32,17 +39,23 @@ pod_rules_labels_filled_in:
     exclude_namespaces:
     - kube-system
 pod_rules_limits_filled_in:
-- name: Checks if limits are filled in everywhere except in kube-system
+- name: Checks if pod limits are filled in everywhere except in kube-system
   filter:
     exclude_namespaces:
     - kube-system
 pod_rules_requests_filled_in:
-- name: Checks if requests are filled in everywhere
+- name: Checks if pod requests are filled in everywhere
   filter:
     exclude_namespaces:
     - kube-system
 deployment_rules_replicas_minimum:
-- name: Checks that al deployment have a minimum of 2 replicas
+- name: Checks that al Deployments have a minimum of 2 replicas
+  minimum_replicas: 2
+  filter:
+    exclude_namespaces:
+    - kube-system
+stateful_set_rules_replicas_minimum:
+- name: Checks that al StatefulSets have a minimum of 2 replicas
   minimum_replicas: 2
   filter:
     exclude_namespaces:

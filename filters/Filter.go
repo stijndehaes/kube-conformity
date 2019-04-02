@@ -17,17 +17,21 @@ type DeploymentFilter struct {
 	Filter `yaml:",inline"`
 }
 
+type StatefulsetFilter struct {
+	Filter `yaml:",inline"`
+}
+
 type PodFilter struct {
 	Filter           `yaml:",inline"`
 	ExcludeJobs bool `yaml:"exclude_jobs"`
 }
 
-func (f Filter) FilterObjects(pods []metav1.Object) []metav1.Object {
-	filteredPods := f.FilterIncludeNamespace(pods)
-	filteredPods = f.FilterExcludeNamespace(filteredPods)
-	filteredPods = f.FilterExcludeAnnotations(filteredPods)
-	filteredPods = f.FilterExcludeLabels(filteredPods)
-	return filteredPods
+func (f Filter) FilterObjects(objects []metav1.Object) []metav1.Object {
+	filteredObjects := f.FilterIncludeNamespace(objects)
+	filteredObjects = f.FilterExcludeNamespace(filteredObjects)
+	filteredObjects = f.FilterExcludeAnnotations(filteredObjects)
+	filteredObjects = f.FilterExcludeLabels(filteredObjects)
+	return filteredObjects
 }
 
 func convertPodsToObjects(pods []apiv1.Pod) []metav1.Object {
@@ -45,6 +49,15 @@ func convertDeploymentsToObjects(deployments []appsv1.Deployment) []metav1.Objec
 	}
 	return objects
 }
+
+func convertStatefulSetToObjects(statefulSets []appsv1.StatefulSet) []metav1.Object {
+	var objects []metav1.Object
+	for idx := range statefulSets {
+		objects = append(objects, statefulSets[idx].GetObjectMeta())
+	}
+	return objects
+}
+
 
 func (f PodFilter) FilterPods(pods []apiv1.Pod) []apiv1.Pod {
 	objects := convertPodsToObjects(pods)
@@ -73,6 +86,20 @@ func (f DeploymentFilter) FilterDeployments(deployments []appsv1.Deployment) []a
 		}
 	}
 	return filteredDeployments
+}
+
+func (f StatefulsetFilter) FilterStatefulSets(statefulSets []appsv1.StatefulSet) []appsv1.StatefulSet {
+	objects := convertStatefulSetToObjects(statefulSets)
+	filteredObjects := f.FilterObjects(objects)
+	var filteredStatefulsets []appsv1.StatefulSet
+	for _, statefulset := range statefulSets {
+		for _, object := range filteredObjects {
+			if object.GetUID() == statefulset.GetUID() {
+				filteredStatefulsets = append(filteredStatefulsets, statefulset)
+			}
+		}
+	}
+	return filteredStatefulsets
 }
 
 func (f Filter) FilterIncludeNamespace(objects []metav1.Object) []metav1.Object {

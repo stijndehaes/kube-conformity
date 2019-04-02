@@ -39,7 +39,7 @@ func (r *PodRuleRequestsFilledIn) UnmarshalYAML(unmarshal func(interface{}) erro
 		return err
 	}
 	if r.Name == "" {
-		return fmt.Errorf("Missing name for PodRuleRequestsFilledIn")
+		return fmt.Errorf("missing name for PodRuleRequestsFilledIn")
 	}
 	return nil
 }

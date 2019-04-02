@@ -87,6 +87,19 @@ deployment_rules_replicas_minimum:
 	assert.Len(t, config.DeploymentRuleReplicasMinimum, 1)
 }
 
+func TestKubeConformityConfig_UnmarshalYAML_StatefulSetRuleReplicasMinimum(t *testing.T) {
+	test := `
+interval: 1h
+stateful_set_rules_replicas_minimum:
+- name: replicas minimum 1
+  minimum_replicas: 2`
+
+	config := Config{}
+
+	yaml.Unmarshal([]byte(test), &config)
+	assert.Len(t, config.StatefulSetRuleReplicasMinimum, 1)
+}
+
 func TestKubeConformityConfig_UnmarshalYAML_Error(t *testing.T) {
 	test := `random`
 
