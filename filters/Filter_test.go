@@ -245,12 +245,12 @@ func Test_convertDeploymentsToObjects(t *testing.T) {
 	assert.NotEqual(t, objects[0], objects[1])
 }
 
-func Test_convertStatefulsetToObjects(t *testing.T) {
+func Test_convertStatefulSetToObjects(t *testing.T) {
 	deployments :=[]appsv1.StatefulSet{
 		newStatefulset("default", "name1", "uid1"),
 		newStatefulset("kube-system", "name2", "uid2"),
 	}
-	objects := convertStatefulsetToObjects(deployments)
+	objects := convertStatefulSetToObjects(deployments)
 
 	assert.Len(t, objects, 2)
 	assert.Equal(t, objects[0], deployments[0].GetObjectMeta())

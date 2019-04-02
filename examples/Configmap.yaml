@@ -14,6 +14,18 @@ data:
         namespaces: "!kube-system"
     pod_rules_requests_filled_in:
     - name: Checks if requests are filled in everywhere
+    deployment_rules_replicas_minimum:
+    - name: Checks that al Deployments have a minimum of 2 replicas
+      minimum_replicas: 2
+      filter:
+        exclude_namespaces:
+        - kube-system
+    stateful_set_rules_replicas_minimum:
+    - name: Checks that al StatefulSets have a minimum of 2 replicas
+      minimum_replicas: 2
+      filter:
+        exclude_namespaces:
+        - kube-system
 kind: ConfigMap
 metadata:
   name: kube-conformity
