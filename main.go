@@ -157,4 +157,3 @@ func newClient() (*kubernetes.Clientset, error) {
 	}
 	return client, nil
 }
-
