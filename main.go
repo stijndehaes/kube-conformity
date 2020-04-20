@@ -22,14 +22,25 @@ import (
 )
 
 var (
-	master            = *kingpin.Flag("master", "The address of the Kubernetes cluster to target").String()
-	kubeConfig        = *kingpin.Flag("kube-config", "Path to a kubeConfig file").String()
-	debug             = *kingpin.Flag("debug", "Enable debug logging.").Bool()
-	configLocation    = *kingpin.Flag("config-location", "The location of the config.yaml").Default("config.yaml").String()
-	jsonLogging       = *kingpin.Flag("json-logging", "Enable json logging.").Bool()
-	prometheusEnabled = *kingpin.Flag("prometheus-enabled", "Enable prometheus metrics").Default("true").Bool()
-	PrometheusAddr    = *kingpin.Flag("prometheus-addr", "Prometheus metrics addr").Default(":8000").String()
+	master            string
+	kubeConfig        string
+	debug             bool
+	prometheusEnabled bool
+	version           string
+	configLocation    string
+	PrometheusAddr    string
+	jsonLogging       bool
 )
+
+func init() {
+	kingpin.Flag("master", "The address of the Kubernetes cluster to target").StringVar(&master)
+	kingpin.Flag("kube-config", "Path to a kubeConfig file").StringVar(&kubeConfig)
+	kingpin.Flag("debug", "Enable debug logging.").BoolVar(&debug)
+	kingpin.Flag("json-logging", "Enable json logging.").BoolVar(&jsonLogging)
+	kingpin.Flag("config-location", "The location of the config.yaml").Default("config.yaml").StringVar(&configLocation)
+	kingpin.Flag("prometheus-enabled", "Enable prometheus metrics").Default("true").BoolVar(&prometheusEnabled)
+	kingpin.Flag("prometheus-addr", "Prometheus metrics addr").Default(":8000").StringVar(&PrometheusAddr)
+}
 
 func defaultPageHandler(config config.Config) func(w http.ResponseWriter, r *http.Request) {
 	configByte, err := yaml.Marshal(&config)
@@ -146,3 +157,4 @@ func newClient() (*kubernetes.Clientset, error) {
 	}
 	return client, nil
 }
+
