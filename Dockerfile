@@ -19,4 +19,4 @@ COPY config.yaml /tmp/result/config.yaml
 FROM gcr.io/distroless/base
 MAINTAINER Stijn De Haes <stijndehaes@gmail.com>
 COPY --from=builder /tmp/result/ /
-CMD ["/kube-conformity"]
+ENTRYPOINT ["/kube-conformity"]
