@@ -26,7 +26,6 @@ var (
 	kubeConfig        string
 	debug             bool
 	prometheusEnabled bool
-	version           string
 	configLocation    string
 	PrometheusAddr    string
 	jsonLogging       bool
